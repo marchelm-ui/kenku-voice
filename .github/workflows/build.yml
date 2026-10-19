@@ -9,7 +9,51 @@ permissions:
   contents: write
 
 jobs:
+  voice-test:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v5
+      - name: Reuse downloaded voice files
+        uses: actions/cache@v4
+        with:
+          path: dl
+          key: arm-sherpa-onnx-1.13.8-kokoro-multi-lang-v1_0-pocket-int8-2026-01-26
+      - name: Get the voice models
+        run: |
+          set -euo pipefail
+          mkdir -p dl
+          [ -s dl/kokoro.tar.bz2 ] || curl -fL --retry 3 -o dl/kokoro.tar.bz2 \
+            https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_0.tar.bz2
+          [ -s dl/pocket.tar.bz2 ] || curl -fL --retry 3 -o dl/pocket.tar.bz2 \
+            https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-pocket-tts-int8-2026-01-26.tar.bz2
+          tar xjf dl/kokoro.tar.bz2
+          tar xjf dl/pocket.tar.bz2
+      - name: Test voices, cloning and speed on ARM
+        run: |
+          set -o pipefail
+          python3 -m pip install --quiet --break-system-packages sherpa-onnx==1.13.8 numpy 2>/dev/null || python3 -m pip install --quiet sherpa-onnx==1.13.8 numpy
+          python3 tools/voice_test.py kokoro-multi-lang-v1_0 sherpa-onnx-pocket-tts-int8-2026-01-26 kenku-sample.wav 2>&1 | tee voice-test-log.txt
+      - name: Save the voice test log if it failed
+        if: failure()
+        run: |
+          git config user.name build-bot
+          git config user.email build-bot@users.noreply.github.com
+          git checkout --orphan build-logs
+          git rm -rf --cached . > /dev/null
+          cp voice-test-log.txt failure-log.txt 2>/dev/null || echo "no voice test log" > failure-log.txt
+          git add -f failure-log.txt
+          git commit -m "Voice test ${{ github.run_number }} failure log"
+          git push -f origin build-logs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: voice-test
+          path: |
+            kenku-sample.wav
+            voice-test-log.txt
+
   build:
+    needs: voice-test
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
@@ -27,7 +71,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: dl
-          key: sherpa-onnx-1.13.8-kokoro-int8-multi-lang-v1_0
+          key: sherpa-onnx-1.13.8-kokoro-multi-lang-v1_0-pocket-int8-2026-01-26
 
       - name: Get the speech engine and Kokoro voices
         run: |
@@ -36,24 +80,29 @@ jobs:
           [ -s dl/sherpa-onnx.aar ] || curl -fL --retry 3 -o dl/sherpa-onnx.aar \
             https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.13.8/sherpa-onnx-1.13.8.aar
           [ -s dl/kokoro.tar.bz2 ] || curl -fL --retry 3 -o dl/kokoro.tar.bz2 \
-            https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-int8-multi-lang-v1_0.tar.bz2
+            https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_0.tar.bz2
+          [ -s dl/pocket.tar.bz2 ] || curl -fL --retry 3 -o dl/pocket.tar.bz2 \
+            https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-pocket-tts-int8-2026-01-26.tar.bz2
           cp dl/sherpa-onnx.aar app/libs/sherpa-onnx.aar
           tar xjf dl/kokoro.tar.bz2
-          D=kokoro-int8-multi-lang-v1_0
-          cp $D/model.int8.onnx $D/voices.bin $D/tokens.txt $D/lexicon-us-en.txt $D/lexicon-zh.txt app/src/main/assets/kokoro/
+          tar xjf dl/pocket.tar.bz2
+          D=kokoro-multi-lang-v1_0
+          cp $D/model.onnx $D/voices.bin $D/tokens.txt $D/lexicon-us-en.txt $D/lexicon-zh.txt app/src/main/assets/kokoro/
           cp -r $D/espeak-ng-data app/src/main/assets/kokoro/
-          du -sh app/src/main/assets/kokoro
+          P=sherpa-onnx-pocket-tts-int8-2026-01-26
+          mkdir -p app/src/main/assets/pocket
+          cp $P/lm_flow.int8.onnx $P/lm_main.int8.onnx $P/encoder.onnx $P/decoder.int8.onnx $P/text_conditioner.onnx $P/vocab.json $P/token_scores.json app/src/main/assets/pocket/
+          du -sh app/src/main/assets/*
 
-      - name: Test every voice with the same engine version
-        run: |
-          set -o pipefail
-          python3 -m pip install --quiet sherpa-onnx==1.13.8 numpy
-          python3 tools/voice_test.py app/src/main/assets/kokoro kenku-sample.wav 2>&1 | tee build-log.txt
+      - name: Get the voice test results
+        uses: actions/download-artifact@v4
+        with:
+          name: voice-test
 
       - name: Build the APK
         run: |
           set -o pipefail
-          gradle :app:assembleRelease --no-daemon 2>&1 | tee -a build-log.txt
+          gradle :app:assembleRelease --no-daemon 2>&1 | tee build-log.txt
 
       - name: Name the APK
         run: cp app/build/outputs/apk/release/app-release.apk KenkuVoice.apk
@@ -64,7 +113,9 @@ jobs:
           ls -la KenkuVoice.apk
           unzip -l KenkuVoice.apk | grep -q 'lib/arm64-v8a/libsherpa-onnx-jni.so'
           unzip -l KenkuVoice.apk | grep -q 'lib/arm64-v8a/libonnxruntime.so'
-          unzip -l KenkuVoice.apk | grep -q 'assets/kokoro/model.int8.onnx'
+          unzip -l KenkuVoice.apk | grep -q 'assets/kokoro/model.onnx'
+          unzip -l KenkuVoice.apk | grep -q 'assets/pocket/lm_main.int8.onnx'
+          unzip -l KenkuVoice.apk | grep -q 'assets/sfx/catalog.json'
           unzip -l KenkuVoice.apk | grep -q 'assets/kokoro/voices.bin'
           unzip -l KenkuVoice.apk | grep -q 'assets/kokoro/espeak-ng-data/phontab'
           ZA=$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -1)zipalign
@@ -83,10 +134,11 @@ jobs:
         with:
           tag_name: build-${{ github.run_number }}
           name: Kenku Voice build ${{ github.run_number }}
-          body: Download KenkuVoice.apk below on your Android phone and open it to install. Includes 54 Kokoro voices; it is a large download (about 200 MB).
+          body: Download KenkuVoice.apk below on your Android phone and open it to install. Speak, Clones and Sounds tabs: 54 Kokoro voices, voice cloning and 460+ medieval sounds. Large download (about 500 MB).
           files: |
             KenkuVoice.apk
             kenku-sample.wav
+            voice-test-log.txt
           make_latest: true
 
       - name: Save the error log if the build failed

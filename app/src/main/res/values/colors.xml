@@ -8,4 +8,6 @@
     <color name="accent">#3D4FA8</color>
     <color name="accent_ink">#FFFFFF</color>
     <color name="brass">#8A5F17</color>
+    <color name="danger">#B3402E</color>
+    <color name="tab_on">#E3E7F8</color>
 </resources>

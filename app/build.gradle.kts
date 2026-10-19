@@ -12,14 +12,14 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
-        versionName = "2.0." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
+        versionName = "3.0." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
         // Pixel phones are 64-bit ARM; leaving out other chips keeps the app ~100 MB smaller.
         ndk { abiFilters += listOf("arm64-v8a") }
     }
 
     // Keep the voice model uncompressed so it loads quickly.
     androidResources {
-        noCompress += listOf("onnx", "bin")
+        noCompress += listOf("onnx", "bin", "ogg")
     }
 
     packaging {

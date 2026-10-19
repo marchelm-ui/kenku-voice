@@ -6,3 +6,4 @@ local.properties
 *.iml
 app/libs/*.aar
 app/src/main/assets/kokoro/
+app/src/main/assets/pocket/

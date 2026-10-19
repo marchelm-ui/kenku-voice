@@ -1,0 +1,388 @@
+package com.kenku.voice
+
+import android.content.Intent
+import android.graphics.Typeface
+import android.text.InputType
+import android.view.Gravity
+import android.view.KeyEvent
+import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.HorizontalScrollView
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.ScrollView
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.FileProvider
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.File
+
+/** The main tab: type a line, press Enter, hear it in stolen voices; saved lines below. */
+class SpeakTab(private val act: MainActivity) {
+    private val ui = act.ui
+    val view: View
+
+    private lateinit var list: LinearLayout
+    private lateinit var input: EditText
+    private lateinit var say: Button
+    private lateinit var stop: Button
+    private lateinit var status: TextView
+    private lateinit var castInfo: TextView
+
+    @Volatile private var busy = false
+    @Volatile private var streaming = false
+    private val linesDir by lazy { File(act.filesDir, "lines").apply { mkdirs() } }
+    private val indexFile by lazy { File(act.filesDir, "lines.json") }
+
+    data class Line(val id: String, val text: String, var voices: String, var starred: Boolean = false)
+    private val lines = mutableListOf<Line>()
+
+    init {
+        view = build()
+        loadLines()
+        renderList()
+        updateCastInfo()
+        setBusy(true, "Loading the voices… the first launch takes a little longer.")
+    }
+
+    fun onVoicesLoaded(error: Throwable?) {
+        if (error == null) setBusy(false, "")
+        else setBusy(true, "The voices couldn't load (${error.javaClass.simpleName}). Close other apps and reopen Kenku Voice.")
+    }
+
+    // ---------- voice choices ----------
+
+    private fun offSet(key: String): Set<String> = act.prefs.getStringSet(key, emptySet()) ?: emptySet()
+    private fun setOff(key: String, v: Set<String>) { act.prefs.edit().putStringSet(key, HashSet(v)).apply() }
+    private val mixMode get() = act.prefs.getString("mix", "all") ?: "all"
+    private val smooth get() = act.prefs.getBoolean("smooth", true)
+
+    private fun activeAccents(): List<Accent> {
+        val off = offSet("off_accents")
+        return Catalog.accents.filter { it.key !in off }.ifEmpty { Catalog.accents }
+    }
+
+    private fun activeStyles(): List<Style> {
+        val off = offSet("off_styles")
+        return Catalog.styles.filter { it.key !in off }.ifEmpty { listOf(Catalog.styles.first()) }
+    }
+
+    private fun mixClones() = act.clones.list().filter { it.inMix }
+
+    private fun speakers(): List<Speaker> {
+        val builtin = activeAccents().flatMap { a -> a.voices.map { Speaker.Builtin(it, a) } }
+        val cloned = mixClones().map { Speaker.Cloned(it) }
+        return when (mixMode) {
+            "clones" -> cloned.ifEmpty { builtin }
+            "builtin" -> builtin
+            else -> builtin + cloned
+        }
+    }
+
+    fun updateCastInfo() {
+        val a = activeAccents()
+        val clonesN = mixClones().size
+        val styles = activeStyles().size
+        castInfo.text = when (mixMode) {
+            "clones" -> if (clonesN == 0) "Clones only — no clones yet, using built-in voices" else "$clonesN cloned voices · $styles styles"
+            "builtin" -> "${a.sumOf { it.voices.size }} voices · ${a.size} accents · $styles styles"
+            else -> "${a.sumOf { it.voices.size }} voices · ${a.size} accents" + (if (clonesN > 0) " · $clonesN clones" else "") + " · $styles styles"
+        }
+    }
+
+    // ---------- layout ----------
+
+    private fun build(): View {
+        val root = ui.column()
+        val header = ui.column().apply { setPadding(ui.dp(16), ui.dp(14), ui.dp(16), ui.dp(6)) }
+        val titleRow = ui.row()
+        titleRow.addView(ui.title("Kenku Voice"), ui.weight())
+        titleRow.addView(ui.button("Voices") { openVoices() }.apply { textSize = 14f })
+        header.addView(titleRow)
+        header.addView(ui.body("Type and press Enter. Every 2–3 words come out in a new stolen voice. Tap a saved line to hear it again.").apply { setPadding(0, ui.dp(4), 0, 0) })
+        castInfo = ui.body("", 12f, R.color.brass).apply { typeface = Typeface.MONOSPACE; setPadding(0, ui.dp(4), 0, 0) }
+        header.addView(castInfo)
+        val statusRow = ui.row().apply { setPadding(0, ui.dp(6), 0, 0) }
+        status = ui.body("", 14f, R.color.accent)
+        statusRow.addView(status, ui.weight())
+        stop = ui.button("■ Stop", Ui.Kind.DANGER) { stopSpeaking() }.apply { visibility = View.GONE; minHeight = ui.dp(40); minimumHeight = ui.dp(40) }
+        statusRow.addView(stop)
+        header.addView(statusRow)
+        root.addView(header)
+
+        list = ui.column().apply { setPadding(ui.dp(16), ui.dp(6), ui.dp(16), ui.dp(16)) }
+        root.addView(ScrollView(act).apply { addView(list); isFillViewport = true }, LinearLayout.LayoutParams(-1, 0, 1f))
+
+        val bar = ui.row(Gravity.BOTTOM).apply {
+            setPadding(ui.dp(12), ui.dp(10), ui.dp(12), ui.dp(10))
+            setBackgroundColor(ui.c(R.color.surface))
+        }
+        input = EditText(act).apply {
+            id = View.generateViewId()
+            hint = "What does your kenku say?"
+            textSize = 18f
+            setTextColor(ui.c(R.color.ink))
+            setHintTextColor(ui.c(R.color.muted))
+            background = ui.rounded(ui.c(R.color.bg), ui.c(R.color.line))
+            setPadding(ui.dp(12), ui.dp(12), ui.dp(12), ui.dp(12))
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            imeOptions = EditorInfo.IME_ACTION_SEND
+            maxLines = 4
+            setHorizontallyScrolling(false)
+            setOnEditorActionListener { _, actionId, event ->
+                if (actionId == EditorInfo.IME_ACTION_SEND || actionId == EditorInfo.IME_ACTION_DONE ||
+                    (event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
+                    submit(); true
+                } else false
+            }
+        }
+        bar.addView(input, ui.weight())
+        say = ui.button("Say", Ui.Kind.PRIMARY) { submit() }.apply { minWidth = ui.dp(76); minHeight = ui.dp(52) }
+        bar.addView(say, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = ui.dp(8) })
+        root.addView(bar)
+        return root
+    }
+
+    private fun setBusy(isBusy: Boolean, message: String) {
+        busy = isBusy
+        say.isEnabled = !isBusy
+        say.alpha = if (isBusy) 0.5f else 1f
+        status.text = message
+        status.visibility = if (message.isBlank()) View.GONE else View.VISIBLE
+    }
+
+    private fun renderList() {
+        list.removeAllViews()
+        if (lines.isEmpty()) {
+            list.addView(ui.body("Your lines will show up here.\n\nTry: You owe us gold. The tavern keeper said so.", 15f).apply {
+                background = ui.rounded(ui.c(R.color.bg), ui.c(R.color.line))
+                setPadding(ui.dp(16), ui.dp(16), ui.dp(16), ui.dp(16))
+            })
+            return
+        }
+        val sorted = lines.filter { it.starred } + lines.filter { !it.starred }
+        sorted.forEach { list.addView(card(it), ui.fill()) }
+    }
+
+    private fun card(line: Line): View {
+        val box = ui.card(highlight = line.starred)
+        box.addView(ui.body(if (line.starred) "★ ${line.text}" else line.text, 17f, R.color.ink).apply {
+            setTypeface(typeface, Typeface.BOLD)
+            setOnClickListener { play(line) }
+        })
+        if (line.voices.isNotBlank()) box.addView(ui.body(line.voices, 12f, R.color.brass).apply { setPadding(0, ui.dp(4), 0, 0) })
+        val row = ui.row().apply { setPadding(0, ui.dp(8), 0, 0) }
+        row.addView(ui.button("▶ Play", Ui.Kind.PRIMARY) { play(line) }, ui.wrap())
+        row.addView(ui.button("New voices") { remake(line) }, ui.wrap())
+        row.addView(ui.button("Share") { share(line) }, ui.wrap())
+        row.addView(ui.button(if (line.starred) "Unpin" else "Pin") { line.starred = !line.starred; saveLines(); renderList() }, ui.wrap())
+        row.addView(ui.button("Delete", Ui.Kind.DANGER) { confirmDelete(line) }, ui.wrap())
+        box.addView(HorizontalScrollView(act).apply { isHorizontalScrollBarEnabled = false; addView(row) })
+        return box
+    }
+
+    // ---------- voices screen ----------
+
+    private fun openVoices() {
+        if (!act.voicesReady) { act.toast("Voices are still loading"); return }
+        if (busy) { act.toast("One moment, still speaking a line"); return }
+        val offA = offSet("off_accents").toMutableSet()
+        val offS = offSet("off_styles").toMutableSet()
+        var mode = mixMode
+        var smoothOn = smooth
+
+        val body = ui.column().apply { setPadding(ui.dp(20), ui.dp(8), ui.dp(20), ui.dp(8)) }
+        fun heading(t: String, sub: String) {
+            body.addView(ui.heading(t).apply { setPadding(0, ui.dp(12), 0, 0) })
+            body.addView(ui.body(sub, 13f).apply { setPadding(0, ui.dp(2), 0, ui.dp(6)) })
+        }
+        fun row(label: String, detail: String, checked: Boolean, onToggle: (Boolean) -> Unit, onHear: (() -> Unit)?) {
+            val r = ui.row().apply { setPadding(0, ui.dp(4), 0, ui.dp(4)) }
+            val texts = ui.column()
+            texts.addView(ui.body(label, 16f, R.color.ink))
+            texts.addView(ui.body(detail, 12f))
+            val cb = CheckBox(act).apply { isChecked = checked; setOnCheckedChangeListener { _, v -> onToggle(v) }; contentDescription = label }
+            texts.setOnClickListener { cb.isChecked = !cb.isChecked }
+            r.addView(cb)
+            r.addView(texts, ui.weight())
+            if (onHear != null) r.addView(ui.button("Hear") { onHear() }.apply { textSize = 13f; minHeight = ui.dp(40); minimumHeight = ui.dp(40) })
+            body.addView(r)
+        }
+
+        heading("Voice mix", "Which voices your kenku steals from.")
+        val clonesN = mixClones().size
+        val group = RadioGroup(act)
+        listOf("all" to "All voices (built-in + clones)", "builtin" to "Built-in voices only", "clones" to "My clones only ($clonesN)").forEach { (k, t) ->
+            group.addView(RadioButton(act).apply {
+                id = View.generateViewId(); text = t; textSize = 15f; setTextColor(ui.c(R.color.ink))
+                isChecked = k == mode
+                setOnCheckedChangeListener { _, on -> if (on) mode = k }
+            })
+        }
+        body.addView(group)
+        row("Smooth blending", "Softer handovers between voices; styles stay subtle", smoothOn, { smoothOn = it }, null)
+
+        val sample = "Squawk! You owe us gold, friend."
+        heading("Accents", "Untick any you don't want. Hear plays a random voice from that accent.")
+        Catalog.accents.forEach { a ->
+            val names = a.voices.joinToString(", ") { it.name.substringBefore(" (") }
+            row("${a.label} (${a.voices.size})", "${a.detail}: $names", a.key !in offA,
+                { v -> if (v) offA.remove(a.key) else offA.add(a.key) }) {
+                val v = a.voices.random()
+                preview(Speaker.Builtin(v, a), Catalog.styles.first(), sample)
+            }
+        }
+        heading("Speaking styles", "Each snippet also gets a random style. Untick any you don't want.")
+        Catalog.styles.forEach { st ->
+            row(st.label, "pitch ×${"%.2f".format(st.pitch)} · speed ×${"%.2f".format(st.rate)}", st.key !in offS,
+                { v -> if (v) offS.remove(st.key) else offS.add(st.key) }) {
+                val a = Catalog.accents.first()
+                preview(Speaker.Builtin(a.voices.random(), a), st, sample)
+            }
+        }
+
+        AlertDialog.Builder(act)
+            .setTitle("Your kenku's voices")
+            .setView(ScrollView(act).apply { addView(body) })
+            .setPositiveButton("Done") { _, _ ->
+                setOff("off_accents", offA); setOff("off_styles", offS)
+                act.prefs.edit().putString("mix", mode).putBoolean("smooth", smoothOn).apply()
+                updateCastInfo()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private var previewing = false
+    private fun preview(speaker: Speaker, style: Style, text: String) {
+        if (busy || previewing || !act.voicesReady) return
+        previewing = true
+        val out = File(act.cacheDir, "preview.wav")
+        act.engineThread.execute {
+            val ok = try { AudioDsp.writeWav(act.engine.speak(text, speaker, style, smooth), out); true } catch (e: Throwable) { false }
+            act.main.post {
+                previewing = false
+                if (!act.alive) return@post
+                if (ok) act.playFile(out) else act.toast("Couldn't play that sample")
+            }
+        }
+    }
+
+    // ---------- actions ----------
+
+    private fun submit() {
+        val text = input.text.toString().replace(Regex("\\s+"), " ").trim().take(600)
+        if (text.isEmpty() || busy || !act.voicesReady) return
+        input.setText("")
+        record(Line(System.currentTimeMillis().toString(), text, ""), isNew = true)
+    }
+
+    private fun remake(line: Line) { if (!busy && act.voicesReady) record(line, isNew = false) }
+
+    private fun record(line: Line, isNew: Boolean) {
+        val opts = Performer.Options(speakers(), activeStyles(), smooth)
+        act.stopPlayback()
+        setBusy(true, "Stealing voices…")
+        stop.visibility = View.VISIBLE
+        streaming = true
+        act.engineThread.execute {
+            try {
+                val res = act.performer.perform(line.text, opts, fileFor(line),
+                    onProgress = { done, total -> act.main.post { if (busy) status.text = "Stealing voices… $done of $total" } },
+                    onStarted = { act.main.post { if (busy) status.text = "Speaking…" } },
+                    onPlaybackDone = { act.main.post { streaming = false; if (!busy) stop.visibility = View.GONE } })
+                line.voices = res.parts.joinToString("  ·  ")
+                act.main.post {
+                    if (!act.alive) return@post
+                    if (isNew) lines.add(0, line)
+                    saveLines(); renderList(); setBusy(false, "")
+                    if (!streaming) stop.visibility = View.GONE
+                }
+            } catch (e: InterruptedException) {
+                act.main.post { if (act.alive) { setBusy(false, ""); stop.visibility = View.GONE } }
+            } catch (e: Throwable) {
+                act.main.post {
+                    if (!act.alive) return@post
+                    stop.visibility = View.GONE
+                    setBusy(false, if (e.message?.contains("Cloning") == true)
+                        "A cloned voice couldn't load. Untick it in the Clones tab and try again."
+                    else "Couldn't make that line. Try plain words and avoid unusual symbols.")
+                }
+            }
+        }
+    }
+
+    private fun stopSpeaking() {
+        act.performer.cancel()
+        act.stopPlayback()
+        stop.visibility = View.GONE
+    }
+
+    private fun fileFor(line: Line) = File(linesDir, "${line.id}.wav")
+
+    private fun play(line: Line) {
+        val f = fileFor(line)
+        if (!f.exists()) { remake(line); return }
+        act.performer.cancel()
+        stop.visibility = View.VISIBLE
+        act.playFile(f) { stop.visibility = View.GONE }
+    }
+
+    private fun share(line: Line) {
+        val f = fileFor(line)
+        if (!f.exists()) return
+        try {
+            val shareDir = File(act.cacheDir, "share").apply { mkdirs(); listFiles()?.forEach { it.delete() } }
+            val name = line.text.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').take(40).ifBlank { "kenku" }
+            val named = File(shareDir, "kenku-$name.wav")
+            f.copyTo(named, overwrite = true)
+            val uri = FileProvider.getUriForFile(act, "com.kenku.voice.files", named)
+            val send = Intent(Intent.ACTION_SEND).apply {
+                type = "audio/wav"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            act.startActivity(Intent.createChooser(send, "Send kenku audio"))
+        } catch (e: Exception) {
+            act.toast("Couldn't share that line.")
+        }
+    }
+
+    private fun confirmDelete(line: Line) {
+        AlertDialog.Builder(act)
+            .setMessage("Delete “${line.text.take(60)}”?")
+            .setPositiveButton("Delete") { _, _ -> fileFor(line).delete(); lines.remove(line); saveLines(); renderList() }
+            .setNegativeButton("Keep", null)
+            .show()
+    }
+
+    // ---------- storage ----------
+
+    private fun loadLines() {
+        lines.clear()
+        try {
+            if (!indexFile.exists()) return
+            val arr = JSONArray(indexFile.readText())
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                lines.add(Line(o.getString("id"), o.getString("text"), o.optString("voices"), o.optBoolean("starred")))
+            }
+        } catch (e: Exception) {}
+    }
+
+    private fun saveLines() {
+        var unpinned = lines.count { !it.starred }
+        while (unpinned > 80) {
+            val old = lines.last { !it.starred }
+            fileFor(old).delete(); lines.remove(old); unpinned--
+        }
+        val arr = JSONArray()
+        lines.forEach { arr.put(JSONObject().put("id", it.id).put("text", it.text).put("voices", it.voices).put("starred", it.starred)) }
+        try { indexFile.writeText(arr.toString()) } catch (e: Exception) {}
+    }
+}
