@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A crow-like kenku head in profile with sound waves leaving its beak -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#E7E9F0"
+        android:pathData="M38,74 C30,66 30,50 38,42 C44,36 54,34 62,38 L76,44 L62,50 C60,58 56,66 50,72 C46,76 42,77 38,74 Z" />
+    <path
+        android:fillColor="#D9A54E"
+        android:pathData="M62,38 L80,45 L62,50 Z" />
+    <path
+        android:fillColor="#1B2030"
+        android:pathData="M50,46 m-3.5,0 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0" />
+    <path
+        android:strokeColor="#8C9BEA"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M84,38 Q89,45 84,52" />
+    <path
+        android:strokeColor="#8C9BEA"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M90,33 Q98,45 90,57" />
+</vector>
