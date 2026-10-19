@@ -115,6 +115,18 @@ class VoiceEngine(private val context: Context) {
         kokoro = OfflineTts(assetManager = context.assets, config = config)
     }
 
+    @Volatile private var warmed = false
+
+    /** The first sentence after loading is slow while the engine warms up; get that out of the way silently. */
+    fun warmUp() {
+        if (warmed || kokoro == null) return
+        try {
+            val a = Catalog.accents.first()
+            speak("Ready, friend.", Speaker.Builtin(a.voices.first(), a), Catalog.styles.first(), true)
+        } catch (e: Throwable) {}
+        warmed = true
+    }
+
     /**
      * Blocking. Loads the cloning model the first time a clone is used. Its files are copied
      * from the app package to private storage once, so the engine reads them as plain files.
