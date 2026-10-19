@@ -1,4 +1,4 @@
-name: Build Kenku Voice app
+name: Build Mocking Bird app
 
 on:
   push:
@@ -121,38 +121,38 @@ jobs:
           git checkout -q -f ${{ github.sha }}
 
       - name: Name the APK
-        run: cp app/build/outputs/apk/release/app-release.apk KenkuVoice.apk
+        run: cp app/build/outputs/apk/release/app-release.apk MockingBird.apk
 
       - name: Check the APK
         run: |
           set -euo pipefail
-          ls -la KenkuVoice.apk
-          unzip -l KenkuVoice.apk | grep -q 'lib/arm64-v8a/libsherpa-onnx-jni.so'
-          unzip -l KenkuVoice.apk | grep -q 'lib/arm64-v8a/libonnxruntime.so'
-          unzip -l KenkuVoice.apk | grep -q 'assets/kokoro/model.onnx'
-          unzip -l KenkuVoice.apk | grep -q 'assets/pocket/lm_main.int8.onnx'
-          unzip -l KenkuVoice.apk | grep -q 'assets/sfx/catalog.json'
-          unzip -l KenkuVoice.apk | grep -q 'assets/kokoro/voices.bin'
-          unzip -l KenkuVoice.apk | grep -q 'assets/kokoro/espeak-ng-data/phontab'
+          ls -la MockingBird.apk
+          unzip -l MockingBird.apk | grep -q 'lib/arm64-v8a/libsherpa-onnx-jni.so'
+          unzip -l MockingBird.apk | grep -q 'lib/arm64-v8a/libonnxruntime.so'
+          unzip -l MockingBird.apk | grep -q 'assets/kokoro/model.onnx'
+          unzip -l MockingBird.apk | grep -q 'assets/pocket/lm_main.int8.onnx'
+          unzip -l MockingBird.apk | grep -q 'assets/sfx/catalog.json'
+          unzip -l MockingBird.apk | grep -q 'assets/kokoro/voices.bin'
+          unzip -l MockingBird.apk | grep -q 'assets/kokoro/espeak-ng-data/phontab'
           ZA=$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -1)zipalign
-          $ZA -c -P 16 4 KenkuVoice.apk && echo "16 KB page alignment OK"
+          $ZA -c -P 16 4 MockingBird.apk && echo "16 KB page alignment OK"
           APKSIGNER=$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -1)apksigner
-          $APKSIGNER verify --print-certs KenkuVoice.apk | head -3
+          $APKSIGNER verify --print-certs MockingBird.apk | head -3
 
       - name: Keep the APK with this run
         uses: actions/upload-artifact@v4
         with:
-          name: KenkuVoice
-          path: KenkuVoice.apk
+          name: MockingBird
+          path: MockingBird.apk
 
       - name: Publish as the latest release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: Kenku Voice build ${{ github.run_number }}
-          body: "Download KenkuVoice.apk below on your Android phone and open it to install. Speak, Clones and Sounds tabs with 54 Kokoro voices, voice cloning and 460+ medieval sounds. Large download (about 500 MB)."
+          name: Mocking Bird build ${{ github.run_number }}
+          body: "Download MockingBird.apk below on your Android phone and open it to install. Speak, Clones and Sounds tabs with 54 voices, voice cloning, a phrasebook, voice effects and 460+ medieval sounds. Large download (about 600 MB)."
           files: |
-            KenkuVoice.apk
+            MockingBird.apk
             kenku-sample.wav
             voice-test-log.txt
           make_latest: true

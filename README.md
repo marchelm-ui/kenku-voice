@@ -1,4 +1,4 @@
-# Kenku Voice
+# Mocking Bird
 
 An Android app for playing a kenku in D&D. Everything runs on the phone: no
 account, no internet, no subscription.
@@ -7,8 +7,9 @@ account, no internet, no subscription.
 
 **🗣️ Speak** – Type a line and press Enter. It is split into natural 2–3 word
 snippets and each one is spoken by a different stolen voice, blended together and
-streamed so it starts talking in under a second. Add sound effects mid-sentence
-with **+ Sound** (for example `Pay up [coins] or else`). Every line is saved for
+streamed so it starts talking in under a second. **＋ Add** drops in phrases from
+the 📜 phrasebook or sound effects mid-sentence (for example `Pay up [coins] or
+else`). Optional voice effects: Cave echo, Distant, Old memory. Every line is saved for
 instant replay, re-voicing, pinning and sharing; pinned lines become one-tap
 **⚡ Quick lines** at the top.
 
@@ -27,7 +28,7 @@ a friend's catchphrase) to replay later or drop into lines, just like a kenku.
 ## Install on your phone
 
 1. On your Android phone, open this repository's **Releases** page.
-2. Download **KenkuVoice.apk** from the newest release (large: about 600 MB).
+2. Download **MockingBird.apk** from the newest release (large: about 600 MB).
 3. Open it. If Android asks, allow your browser to install unknown apps.
 
 Every push to `main` builds a new release automatically, after an ARM voice test

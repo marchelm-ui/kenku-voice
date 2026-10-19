@@ -284,7 +284,7 @@ class SoundsTab(private val act: MainActivity) {
 
     private fun recordMimic() {
         act.withMic { granted ->
-            if (!granted) { act.toast("Kenku Voice needs the microphone to record a sound."); return@withMic }
+            if (!granted) { act.toast("Mocking Bird needs the microphone to record a sound."); return@withMic }
             val body = ui.column().apply { setPadding(ui.dp(20), ui.dp(8), ui.dp(20), 0) }
             body.addView(ui.body("Point the phone at the sound and tap Record. Up to 15 seconds. Silence at the start and end is trimmed.", 14f))
             val timer = ui.body("0.0 s", 22f, R.color.ink).apply { gravity = Gravity.CENTER; setPadding(0, ui.dp(10), 0, ui.dp(4)) }

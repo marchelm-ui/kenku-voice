@@ -158,7 +158,7 @@ class ClonesTab(private val act: MainActivity) {
     private fun toggleRecording() {
         recorder?.let { if (it.running) { it.stop(); return } }
         act.withMic { granted ->
-            if (!granted) { hint.text = "Kenku Voice needs the microphone to record a clone. You can also use Import audio instead."; return@withMic }
+            if (!granted) { hint.text = "Mocking Bird needs the microphone to record a clone. You can also use Import audio instead."; return@withMic }
             val r = Recorder().also { recorder = it }
             recButton.text = "■ Stop recording"
             afterRec.visibility = View.GONE

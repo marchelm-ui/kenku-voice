@@ -76,6 +76,8 @@ class Performer(private val engine: VoiceEngine) {
         val smooth: Boolean,
         /** Exaggerated pitch/speed styles (fun, but harder to understand). Off by default. */
         val wild: Boolean = false,
+        /** Atmosphere on the whole line: none, cave, distant or memory. */
+        val effect: String = "none",
         /** Finds audio for a [sound] tag such as "coins" (24 kHz), plus its friendly name. */
         val soundFor: (String) -> Pair<FloatArray, String>? = { null },
     )
@@ -116,7 +118,12 @@ class Performer(private val engine: VoiceEngine) {
         var lastGroup: String? = null
         var lastStyle: Style? = null
 
-        fun emit(a: FloatArray) { if (a.isNotEmpty()) { p.push(a); full.add(a); bufferedSec += a.size / AudioDsp.RATE.toDouble() } }
+        val fx = LineEffect(opts.effect)
+        fun emit(raw: FloatArray) {
+            if (raw.isEmpty()) return
+            val a = fx.process(raw)
+            p.push(a); full.add(a); bufferedSec += a.size / AudioDsp.RATE.toDouble()
+        }
 
         try {
             for ((i, c) in chunks.withIndex()) {
@@ -194,6 +201,7 @@ class Performer(private val engine: VoiceEngine) {
                 }
             }
             tail?.let { t -> for (k in t.indices) t[k] *= AudioDsp.fadeOutGain(k, t.size); emit(t) }
+            if (fx.active && !cancelled) fx.tail().takeIf { it.isNotEmpty() }?.let { t -> p.push(t); full.add(t) }
             if (!started && !cancelled) onStarted()
             p.finish()
         } catch (e: Throwable) {

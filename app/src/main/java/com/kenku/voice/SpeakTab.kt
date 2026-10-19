@@ -57,7 +57,7 @@ class SpeakTab(private val act: MainActivity) {
 
     fun onVoicesLoaded(error: Throwable?) {
         if (error == null) setBusy(false, "")
-        else setBusy(true, "The voices couldn't load (${error.javaClass.simpleName}). Close other apps and reopen Kenku Voice.")
+        else setBusy(true, "The voices couldn't load (${error.javaClass.simpleName}). Close other apps and reopen Mocking Bird.")
     }
 
     // ---------- voice choices ----------
@@ -67,6 +67,7 @@ class SpeakTab(private val act: MainActivity) {
     private val mixMode get() = act.prefs.getString("mix", "all") ?: "all"
     private val smooth get() = act.prefs.getBoolean("smooth", true)
     private val wild get() = act.prefs.getBoolean("wild", false)
+    private val effect get() = act.prefs.getString("effect", "none") ?: "none"
 
     private fun activeAccents(): List<Accent> {
         val off = offSet("off_accents")
@@ -112,10 +113,10 @@ class SpeakTab(private val act: MainActivity) {
             background = ui.rounded(ui.c(R.color.icon_bg), null, 12)
             contentDescription = null
         }, LinearLayout.LayoutParams(ui.dp(44), ui.dp(44)).apply { rightMargin = ui.dp(10) })
-        titleRow.addView(ui.title("Kenku Voice"), ui.weight())
+        titleRow.addView(ui.title("Mocking Bird"), ui.weight())
         titleRow.addView(ui.button("Voices") { openVoices() }.apply { textSize = 14f })
         header.addView(titleRow)
-        header.addView(ui.body("Type and press Enter. Every 2–3 words come out in a new stolen voice. Add sounds with + Sound, like: Pay up [coins] or else.").apply { setPadding(0, ui.dp(4), 0, 0) })
+        header.addView(ui.body("Type and press Enter. Every 2–3 words come out in a new stolen voice. ＋ Add drops in phrases and sounds, like: Pay up [coins] or else.").apply { setPadding(0, ui.dp(4), 0, 0) })
         castInfo = ui.body("", 12f, R.color.brass).apply { typeface = Typeface.MONOSPACE; setPadding(0, ui.dp(4), 0, 0) }
         header.addView(castInfo)
         val statusRow = ui.row().apply { setPadding(0, ui.dp(6), 0, 0) }
@@ -164,7 +165,7 @@ class SpeakTab(private val act: MainActivity) {
                 } else false
             }
         }
-        bar.addView(ui.button("+ Sound") { pickSound() }.apply { textSize = 13f; minHeight = ui.dp(52); contentDescription = "Insert a sound effect" },
+        bar.addView(ui.button("＋ Add") { addMenu() }.apply { textSize = 13f; minHeight = ui.dp(52); contentDescription = "Add a phrase or sound effect" },
             LinearLayout.LayoutParams(-2, -2).apply { rightMargin = ui.dp(8) })
         bar.addView(input, ui.weight())
         say = ui.button("Say", Ui.Kind.PRIMARY) { ui.tick(input); submit() }.apply { minWidth = ui.dp(76); minHeight = ui.dp(52) }
@@ -236,6 +237,7 @@ class SpeakTab(private val act: MainActivity) {
         var smoothOn = smooth
         var wildOn = wild
         var awakeOn = act.prefs.getBoolean("awake", true)
+        var effectKey = effect
 
         val body = ui.column().apply { setPadding(ui.dp(20), ui.dp(8), ui.dp(20), ui.dp(8)) }
         fun heading(t: String, sub: String) {
@@ -268,6 +270,17 @@ class SpeakTab(private val act: MainActivity) {
         body.addView(group)
         row("Smooth blending", "Softer handovers between voices", smoothOn, { smoothOn = it }, null)
         row("Wild styles", "Much bigger pitch and speed changes. Fun, but some voices get hard to understand.", wildOn, { wildOn = it }, null)
+        heading("Voice effect", "Atmosphere on the whole line, as if the kenku is replaying something it overheard.")
+        val fxGroup = RadioGroup(act)
+        LineEffect.choices.forEach { (k, t) ->
+            fxGroup.addView(RadioButton(act).apply {
+                id = View.generateViewId(); text = t; textSize = 15f; setTextColor(ui.c(R.color.ink))
+                isChecked = k == effectKey
+                setOnCheckedChangeListener { _, on -> if (on) effectKey = k }
+            })
+        }
+        body.addView(fxGroup)
+        heading("Screen", "")
         row("Keep screen awake", "Stops the phone from locking while the app is open, handy at the table", awakeOn, { awakeOn = it }, null)
 
         val sample = "Squawk! You owe us gold, friend."
@@ -294,7 +307,7 @@ class SpeakTab(private val act: MainActivity) {
             .setView(ScrollView(act).apply { addView(body) })
             .setPositiveButton("Done") { _, _ ->
                 setOff("off_accents", offA); setOff("off_styles", offS)
-                act.prefs.edit().putString("mix", mode).putBoolean("smooth", smoothOn).putBoolean("wild", wildOn).putBoolean("awake", awakeOn).apply()
+                act.prefs.edit().putString("mix", mode).putBoolean("smooth", smoothOn).putBoolean("wild", wildOn).putBoolean("awake", awakeOn).putString("effect", effectKey).apply()
                 act.applyKeepAwake()
                 updateCastInfo()
             }
@@ -315,6 +328,31 @@ class SpeakTab(private val act: MainActivity) {
                 if (ok) act.playFile(out) else act.toast("Couldn't play that sample")
             }
         }
+    }
+
+    /** The ＋ Add button: a ready-made phrase or a sound effect. */
+    private fun addMenu() {
+        AlertDialog.Builder(act)
+            .setTitle("Add to your line")
+            .setItems(arrayOf("📜  A phrase from the phrasebook", "🔔  A sound effect")) { _, i -> if (i == 0) pickPhrase() else pickSound() }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun pickPhrase() {
+        val sections = Phrasebook.sections
+        AlertDialog.Builder(act)
+            .setTitle("📜 Phrasebook")
+            .setItems(sections.map { it.first }.toTypedArray()) { _, i ->
+                val (title, phrases) = sections[i]
+                AlertDialog.Builder(act)
+                    .setTitle(title)
+                    .setItems(phrases.map { "“$it”" }.toTypedArray()) { _, j -> insert(phrases[j]) }
+                    .setNegativeButton("Back") { _, _ -> pickPhrase() }
+                    .show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     /** Two taps: pick a category (any sound from it) or a specific sound; inserts a [tag] at the cursor. */
@@ -369,7 +407,7 @@ class SpeakTab(private val act: MainActivity) {
 
     private fun record(line: Line, isNew: Boolean) {
         val appCtx = act.applicationContext
-        val opts = Performer.Options(speakers(), activeStyles(), smooth, wild) { tag ->
+        val opts = Performer.Options(speakers(), activeStyles(), smooth, wild, effect) { tag ->
             SfxLibrary.find(appCtx, tag)?.let { fx ->
                 try {
                     val raw = if (fx.isUserFile) AudioDsp.readWav(java.io.File(fx.file))?.let { (x, r) -> AudioDsp.resample(x, r) } ?: throw IllegalStateException("unreadable")
