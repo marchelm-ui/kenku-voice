@@ -19,9 +19,20 @@ data class Accent(val key: String, val label: String, val detail: String, val vo
 
 /**
  * A way of speaking. Pitch is applied after synthesis by resampling, with the
- * generation speed adjusted so the final speed still matches [rate].
+ * generation speed adjusted so the final speed still matches the rate.
+ *
+ * Resampling also shifts the voice's natural resonance, so big pitch changes sound
+ * chipmunky or muddy. [pitch]/[rate] are the clear, everyday amounts; [wildPitch]/
+ * [wildRate] are the exaggerated ones, only used when "Wild styles" is switched on.
  */
-data class Style(val key: String, val label: String, val pitch: Float, val rate: Float)
+data class Style(
+    val key: String,
+    val label: String,
+    val pitch: Float,
+    val rate: Float,
+    val wildPitch: Float = pitch,
+    val wildRate: Float = rate,
+)
 
 /** Who speaks one snippet: a built-in voice or one of the user's clones. */
 sealed class Speaker {
@@ -68,15 +79,15 @@ object Catalog {
 
     val styles = listOf(
         Style("natural", "Natural", 1.0f, 1.0f),
-        Style("giant", "Giant", 0.8f, 0.92f),
-        Style("menacing", "Menacing", 0.87f, 0.88f),
-        Style("gravelly", "Old & gravelly", 0.92f, 0.84f),
-        Style("drawl", "Slow drawl", 1.0f, 0.8f),
-        Style("bright", "Bright", 1.08f, 1.04f),
-        Style("excited", "Excited", 1.1f, 1.18f),
-        Style("hasty", "Fast talker", 1.0f, 1.3f),
-        Style("child", "Child", 1.26f, 1.04f),
-        Style("squeaky", "Squeaky", 1.45f, 1.08f),
+        Style("giant", "Deep", 0.9f, 0.95f, 0.8f, 0.92f),
+        Style("menacing", "Menacing", 0.93f, 0.93f, 0.87f, 0.88f),
+        Style("gravelly", "Old & gravelly", 0.95f, 0.9f, 0.92f, 0.84f),
+        Style("drawl", "Slow drawl", 1.0f, 0.88f, 1.0f, 0.8f),
+        Style("bright", "Bright", 1.05f, 1.02f, 1.08f, 1.04f),
+        Style("excited", "Excited", 1.06f, 1.08f, 1.1f, 1.18f),
+        Style("hasty", "Quick", 1.0f, 1.1f, 1.0f, 1.3f),
+        Style("child", "Young", 1.1f, 1.02f, 1.26f, 1.04f),
+        Style("squeaky", "High", 1.14f, 1.03f, 1.45f, 1.08f),
     )
 }
 
@@ -207,11 +218,16 @@ class VoiceEngine(private val context: Context) {
      * Synthesizes one snippet and returns it cleaned up for joining: trimmed, pitch/speed
      * styled and loudness-matched, at [AudioDsp.RATE].
      */
-    fun speak(text: String, speaker: Speaker, style: Style, smooth: Boolean): FloatArray {
+    fun speak(text: String, speaker: Speaker, style: Style, smooth: Boolean, wild: Boolean = false): FloatArray {
         // When blending smoothly, styles lean toward the natural voice so switches stay subtle.
-        val pitch = (if (smooth) 1f + (style.pitch - 1f) * 0.75f else style.pitch) * Random.nextDouble(0.97, 1.03).toFloat()
-        val rate = if (smooth) 1f + (style.rate - 1f) * 0.6f else style.rate
-        val speed = (rate / pitch).coerceIn(0.55f, 1.9f)
+        // Clear mode keeps every voice easy to understand: small pitch shifts, gentle speed changes.
+        val basePitch = if (wild) style.wildPitch else style.pitch
+        val baseRate = if (wild) style.wildRate else style.rate
+        val jitter = if (smooth) 0.015 else 0.03
+        val pitch = (basePitch * Random.nextDouble(1 - jitter, 1 + jitter).toFloat())
+            .let { if (wild) it.coerceIn(0.7f, 1.6f) else it.coerceIn(0.88f, 1.16f) }
+        val rate = if (wild) baseRate.coerceIn(0.75f, 1.35f) else baseRate.coerceIn(0.86f, 1.12f)
+        val speed = (rate / pitch).coerceIn(0.6f, 1.6f)
         val raw: FloatArray = when (speaker) {
             is Speaker.Builtin -> {
                 val tts = kokoro ?: throw IllegalStateException("Voices not loaded")

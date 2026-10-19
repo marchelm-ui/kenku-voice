@@ -61,6 +61,7 @@ class SpeakTab(private val act: MainActivity) {
     private fun setOff(key: String, v: Set<String>) { act.prefs.edit().putStringSet(key, HashSet(v)).apply() }
     private val mixMode get() = act.prefs.getString("mix", "all") ?: "all"
     private val smooth get() = act.prefs.getBoolean("smooth", true)
+    private val wild get() = act.prefs.getBoolean("wild", false)
 
     private fun activeAccents(): List<Accent> {
         val off = offSet("off_accents")
@@ -197,6 +198,7 @@ class SpeakTab(private val act: MainActivity) {
         val offS = offSet("off_styles").toMutableSet()
         var mode = mixMode
         var smoothOn = smooth
+        var wildOn = wild
 
         val body = ui.column().apply { setPadding(ui.dp(20), ui.dp(8), ui.dp(20), ui.dp(8)) }
         fun heading(t: String, sub: String) {
@@ -227,7 +229,8 @@ class SpeakTab(private val act: MainActivity) {
             })
         }
         body.addView(group)
-        row("Smooth blending", "Softer handovers between voices; styles stay subtle", smoothOn, { smoothOn = it }, null)
+        row("Smooth blending", "Softer handovers between voices", smoothOn, { smoothOn = it }, null)
+        row("Wild styles", "Much bigger pitch and speed changes. Fun, but some voices get hard to understand.", wildOn, { wildOn = it }, null)
 
         val sample = "Squawk! You owe us gold, friend."
         heading("Accents", "Untick any you don't want. Hear plays a random voice from that accent.")
@@ -241,7 +244,7 @@ class SpeakTab(private val act: MainActivity) {
         }
         heading("Speaking styles", "Each snippet also gets a random style. Untick any you don't want.")
         Catalog.styles.forEach { st ->
-            row(st.label, "pitch ×${"%.2f".format(st.pitch)} · speed ×${"%.2f".format(st.rate)}", st.key !in offS,
+            row(st.label, "pitch ×${"%.2f".format(st.pitch)} · speed ×${"%.2f".format(st.rate)} (wild: ×${"%.2f".format(st.wildPitch)} · ×${"%.2f".format(st.wildRate)})", st.key !in offS,
                 { v -> if (v) offS.remove(st.key) else offS.add(st.key) }) {
                 val a = Catalog.accents.first()
                 preview(Speaker.Builtin(a.voices.random(), a), st, sample)
@@ -253,7 +256,7 @@ class SpeakTab(private val act: MainActivity) {
             .setView(ScrollView(act).apply { addView(body) })
             .setPositiveButton("Done") { _, _ ->
                 setOff("off_accents", offA); setOff("off_styles", offS)
-                act.prefs.edit().putString("mix", mode).putBoolean("smooth", smoothOn).apply()
+                act.prefs.edit().putString("mix", mode).putBoolean("smooth", smoothOn).putBoolean("wild", wildOn).apply()
                 updateCastInfo()
             }
             .setNegativeButton("Cancel", null)
@@ -266,7 +269,7 @@ class SpeakTab(private val act: MainActivity) {
         previewing = true
         val out = File(act.cacheDir, "preview.wav")
         act.engineThread.execute {
-            val ok = try { AudioDsp.writeWav(act.engine.speak(text, speaker, style, smooth), out); true } catch (e: Throwable) { false }
+            val ok = try { AudioDsp.writeWav(act.engine.speak(text, speaker, style, smooth, wild), out); true } catch (e: Throwable) { false }
             act.main.post {
                 previewing = false
                 if (!act.alive) return@post
@@ -317,7 +320,7 @@ class SpeakTab(private val act: MainActivity) {
 
     private fun record(line: Line, isNew: Boolean) {
         val appCtx = act.applicationContext
-        val opts = Performer.Options(speakers(), activeStyles(), smooth) { tag ->
+        val opts = Performer.Options(speakers(), activeStyles(), smooth, wild) { tag ->
             SfxLibrary.find(appCtx, tag)?.let { fx ->
                 try { AudioDsp.matchLoudness(AudioDsp.trim(AudioImport.decodeAsset(appCtx, fx.file, 12), 0.004f), 0.07f) to fx.label }
                 catch (e: Exception) { null }

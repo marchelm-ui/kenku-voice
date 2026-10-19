@@ -74,6 +74,8 @@ class Performer(private val engine: VoiceEngine) {
         val speakers: List<Speaker>,
         val styles: List<Style>,
         val smooth: Boolean,
+        /** Exaggerated pitch/speed styles (fun, but harder to understand). Off by default. */
+        val wild: Boolean = false,
         /** Finds audio for a [sound] tag such as "coins" (24 kHz), plus its friendly name. */
         val soundFor: (String) -> Pair<FloatArray, String>? = { null },
     )
@@ -141,14 +143,14 @@ class Performer(private val engine: VoiceEngine) {
 
                 val t0 = SystemClock.uptimeMillis()
                 val s = try {
-                    engine.speak(c.spoken, speaker, style, opts.smooth)
+                    engine.speak(c.spoken, speaker, style, opts.smooth, opts.wild)
                 } catch (e: Throwable) {
                     // A clone that can't be voiced shouldn't ruin the line: drop clones and use a built-in voice.
                     val builtin = speakers.filterIsInstance<Speaker.Builtin>()
                     if (speaker !is Speaker.Cloned || builtin.isEmpty()) throw e
                     speakers = builtin
                     speaker = pick(speakers, last, lastGroup)
-                    engine.speak(c.spoken, speaker, style, opts.smooth)
+                    engine.speak(c.spoken, speaker, style, opts.smooth, opts.wild)
                 }
                 last = speaker; lastGroup = groupOf(speaker); lastStyle = style
                 genMs += SystemClock.uptimeMillis() - t0

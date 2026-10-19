@@ -135,7 +135,7 @@ for i, w in enumerate(chunks):
     if i % 5 == 2:
         a = pt.generate(spoken(w, i == len(chunks) - 1), g)
     else:
-        a = kt.generate(spoken(w, i == len(chunks) - 1), sid=random.randrange(54), speed=random.choice([0.9, 1.0, 1.1]))
+        a = kt.generate(spoken(w, i == len(chunks) - 1), sid=random.randrange(54), speed=random.choice([0.92, 1.0, 1.06]))
     x = match(trim(np.array(a.samples, dtype=np.float32)))
     gen += time.time() - t0
     audio += len(x) / RATE
