@@ -10,7 +10,8 @@ import kotlin.random.Random
  */
 object Chunker {
 
-    data class Chunk(val words: List<String>, val isLast: Boolean) {
+    /** A snippet of speech, or (when [sound] is set) a mimicked sound effect like [coins]. */
+    data class Chunk(val words: List<String>, val isLast: Boolean, val sound: String? = null) {
         val display: String get() = words.joinToString(" ")
 
         /**
@@ -40,9 +41,30 @@ object Chunker {
         "not", "no", "very", "too", "i", "we", "you", "he", "she", "they", "it", "i'm", "you're", "we're",
         "they're", "it's", "don't", "can't", "won't", "some", "any", "every", "each", "all", "one", "two",
         "three", "who", "what", "where", "when", "why", "how", "which", "whose", "has", "have", "had", "just",
+        "before", "after", "behind", "through", "across", "against", "between", "without", "within", "around",
+        "toward", "towards", "near", "like", "since", "until", "till", "while", "because", "via", "per",
+        "really", "quite", "more", "most", "less", "such",
     )
 
+    private val tagRegex = Regex("\\[([^\\]]{1,40})]")
+
+    /** Splits a line, keeping [sound] tags as their own snippets in place. */
     fun split(text: String, random: Random = Random.Default): List<Chunk> {
+        val out = mutableListOf<Chunk>()
+        var pos = 0
+        for (m in tagRegex.findAll(text)) {
+            out += splitSpeech(text.substring(pos, m.range.first), random)
+            val tag = m.groupValues[1].trim()
+            if (tag.isNotEmpty()) out += Chunk(emptyList(), false, tag)
+            pos = m.range.last + 1
+        }
+        out += splitSpeech(text.substring(pos), random)
+        // Only the final speech snippet should sound like the end of a sentence.
+        val lastSpeech = out.indexOfLast { it.sound == null }
+        return out.mapIndexed { i, c -> if (c.sound == null) c.copy(isLast = i == lastSpeech) else c }
+    }
+
+    private fun splitSpeech(text: String, random: Random): List<Chunk> {
         val words = text.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
         if (words.isEmpty()) return emptyList()
         if (words.size <= 3) return listOf(Chunk(words, true))
@@ -72,7 +94,7 @@ object Chunker {
             for (size in intArrayOf(2, 3, 1, 4)) {
                 val start = end - size
                 if (start < 0 || best[start] == Double.MAX_VALUE) continue
-                val sizePenalty = when (size) { 1 -> 6.0; 4 -> 5.0; else -> 0.0 }
+                val sizePenalty = when (size) { 1 -> 6.0; 4 -> 2.2; else -> 0.0 }
                 val cut = if (end == n) 0.0 else breakCost[end - 1]
                 val cost = best[start] + cut + sizePenalty
                 if (cost < best[end]) { best[end] = cost; from[end] = start }

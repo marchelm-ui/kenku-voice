@@ -88,20 +88,32 @@ class Recorder {
     @Volatile var running = false; private set
     @Volatile var level = 0f; private set
     private val data = ArrayList<FloatArray>()
+    private var captureRate = AudioDsp.RATE
 
     @SuppressLint("MissingPermission") // The caller checks RECORD_AUDIO first.
     fun start(maxSeconds: Int = 25, onTick: (seconds: Float) -> Unit) {
-        val minBuf = AudioRecord.getMinBufferSize(AudioDsp.RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
-        val rec = AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, AudioDsp.RATE, AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT, maxOf(minBuf, AudioDsp.RATE))
-        if (rec.state != AudioRecord.STATE_INITIALIZED) { rec.release(); throw IllegalStateException("Microphone unavailable") }
+        // Most phones record at 48 kHz natively; try the app's rate first, then common ones.
+        var rec: AudioRecord? = null
+        var rate = AudioDsp.RATE
+        for (r in intArrayOf(AudioDsp.RATE, 48000, 44100, 16000)) {
+            val minBuf = AudioRecord.getMinBufferSize(r, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
+            if (minBuf <= 0) continue
+            val candidate = try {
+                AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, r, AudioFormat.CHANNEL_IN_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT, maxOf(minBuf, r))
+            } catch (e: Exception) { null } ?: continue
+            if (candidate.state == AudioRecord.STATE_INITIALIZED) { rec = candidate; rate = r; break }
+            candidate.release()
+        }
+        if (rec == null) throw IllegalStateException("Microphone unavailable")
         data.clear()
-        val buf = ShortArray(AudioDsp.RATE / 10)
+        captureRate = rate
+        val buf = ShortArray(rate / 10)
         running = true
         var total = 0
         try {
             rec.startRecording()
-            while (running && total < AudioDsp.RATE * maxSeconds) {
+            while (running && total < rate * maxSeconds) {
                 val n = rec.read(buf, 0, buf.size)
                 if (n <= 0) continue
                 val f = FloatArray(n) { buf[it] / 32768f }
@@ -110,7 +122,7 @@ class Recorder {
                 var peak = 0f
                 for (v in f) peak = maxOf(peak, abs(v))
                 level = peak
-                onTick(total / AudioDsp.RATE.toFloat())
+                onTick(total / rate.toFloat())
             }
         } finally {
             running = false
@@ -125,7 +137,7 @@ class Recorder {
         val out = FloatArray(data.sumOf { it.size })
         var o = 0
         for (a in data) { a.copyInto(out, o); o += a.size }
-        return out
+        return AudioDsp.resample(out, captureRate)
     }
 }
 
@@ -134,6 +146,19 @@ object AudioImport {
     fun decode(context: Context, uri: Uri, maxSeconds: Int = 30): FloatArray {
         val ex = MediaExtractor()
         ex.setDataSource(context, uri, null)
+        return decode(ex, maxSeconds)
+    }
+
+    /** Decodes a bundled asset (e.g. a sound effect) to 24 kHz mono. */
+    fun decodeAsset(context: Context, path: String, maxSeconds: Int = 30): FloatArray {
+        context.assets.openFd(path).use { fd ->
+            val ex = MediaExtractor()
+            ex.setDataSource(fd.fileDescriptor, fd.startOffset, fd.length)
+            return decode(ex, maxSeconds)
+        }
+    }
+
+    private fun decode(ex: MediaExtractor, maxSeconds: Int): FloatArray {
         val track = (0 until ex.trackCount).firstOrNull {
             ex.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith("audio/") == true
         } ?: run { ex.release(); throw IllegalArgumentException("No audio in that file") }

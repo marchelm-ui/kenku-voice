@@ -1,29 +1,40 @@
 # Kenku Voice
 
-An Android app for playing a kenku in D&D. Type a line and press Enter: every
-2–3 words are spoken by a different stolen voice — new speaker, accent and
-style — and the whole line is saved as one audio file you can replay or share.
+An Android app for playing a kenku in D&D. Everything runs on the phone: no
+account, no internet, no subscription.
 
-Voices come from **Kokoro**, a free open-source neural voice model, running
-entirely on the phone through **sherpa-onnx**. No account, no internet, no
-permissions.
+## Three tabs
 
-- 54 human-sounding voices: American, British, and English spoken with Indian,
-  Chinese, Japanese, Spanish, French, Italian and Brazilian accents
-- 10 speaking styles (Giant, Menacing, Child, Squeaky, Fast talker…)
-- Saved lines, pinning, sharing as WAV
+**🗣️ Speak** – Type a line and press Enter. It is split into natural 2–3 word
+snippets and each one is spoken by a different stolen voice, blended together and
+streamed so it starts talking in under a second. Add sound effects mid-sentence
+with **+ Sound** (for example `Pay up [coins] or else`). Every line is saved for
+instant replay, re-voicing, pinning and sharing.
+
+**🎭 Clones** – Record about 10 seconds of someone talking (or import an audio
+file), give the voice a name, and your kenku can mimic them. Each clone can be
+tested, renamed, deleted and switched in or out of the voice mix. Only clone
+people who are happy for you to.
+
+**🔔 Sounds** – A medieval soundboard with 467 sounds in 11 categories: Doors &
+Locks, Creaks & Wood, Coins & Treasure, Tavern & Food, Home & Workshop, Weapons &
+Armor, People, Animals, Monsters, Magic, and Nature & Weather. Tap to play, tap
+again to stop, star favorites, search by name.
 
 ## Install on your phone
 
 1. On your Android phone, open this repository's **Releases** page.
-2. Download **KenkuVoice.apk** from the newest release (about 200 MB).
+2. Download **KenkuVoice.apk** from the newest release (large: about 600 MB).
 3. Open it. If Android asks, allow your browser to install unknown apps.
 
-Every push to `main` builds a new release automatically. Newer builds install
-over older ones and keep your saved lines. Built for 64-bit ARM phones such as
-Google Pixel.
+Every push to `main` builds a new release automatically, after an ARM voice test
+checks all voices, cloning and speed. Newer builds install over older ones and
+keep your saved lines and clones. Built for 64-bit ARM phones such as Google Pixel.
 
-## Credits
+## Credits and licenses
 
-- Kokoro-82M by hexgrad (Apache-2.0)
-- sherpa-onnx by k2-fsa (Apache-2.0)
+- Kokoro-82M by hexgrad (Apache-2.0) – built-in voices
+- Pocket TTS by Kyutai, ONNX export by KevinAHM – voice cloning (non-commercial license)
+- sherpa-onnx by k2-fsa (Apache-2.0) – on-device speech engine
+- Sound effects: CC0 (public domain) packs from OpenGameArt.org, listed in
+  `app/src/main/assets/sfx/CREDITS.txt`

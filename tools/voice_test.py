@@ -43,7 +43,9 @@ def rms(x):
 LEANERS = set("""a an the my your his her its our their this that these those of to in on at for with from by into onto
 upon about over under and or but nor so if than as is are was were be been am will would can could shall should must
 may might do does did not no very too i we you he she they it i'm you're we're they're it's don't can't won't some any
-every each all one two three who what where when why how which whose has have had just""".split())
+every each all one two three who what where when why how which whose has have had just before after behind through
+across against between without within around toward towards near like since until till while because via per really
+quite more most less such""".split())
 
 
 def split(text):
@@ -63,7 +65,7 @@ def split(text):
             s = e - size
             if s < 0 or best[s] == float("inf"):
                 continue
-            c = best[s] + (0 if e == n else cost[e - 1]) + {1: 6, 4: 5}.get(size, 0)
+            c = best[s] + (0 if e == n else cost[e - 1]) + {1: 6, 4: 2.2}.get(size, 0)
             if c < best[e]:
                 best[e], frm[e] = c, s
     b, e = [], n

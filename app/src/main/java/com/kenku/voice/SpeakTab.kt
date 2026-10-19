@@ -104,7 +104,7 @@ class SpeakTab(private val act: MainActivity) {
         titleRow.addView(ui.title("Kenku Voice"), ui.weight())
         titleRow.addView(ui.button("Voices") { openVoices() }.apply { textSize = 14f })
         header.addView(titleRow)
-        header.addView(ui.body("Type and press Enter. Every 2–3 words come out in a new stolen voice. Tap a saved line to hear it again.").apply { setPadding(0, ui.dp(4), 0, 0) })
+        header.addView(ui.body("Type and press Enter. Every 2–3 words come out in a new stolen voice. Add sounds with + Sound, like: Pay up [coins] or else.").apply { setPadding(0, ui.dp(4), 0, 0) })
         castInfo = ui.body("", 12f, R.color.brass).apply { typeface = Typeface.MONOSPACE; setPadding(0, ui.dp(4), 0, 0) }
         header.addView(castInfo)
         val statusRow = ui.row().apply { setPadding(0, ui.dp(6), 0, 0) }
@@ -141,6 +141,8 @@ class SpeakTab(private val act: MainActivity) {
                 } else false
             }
         }
+        bar.addView(ui.button("+ Sound") { pickSound() }.apply { textSize = 13f; minHeight = ui.dp(52); contentDescription = "Insert a sound effect" },
+            LinearLayout.LayoutParams(-2, -2).apply { rightMargin = ui.dp(8) })
         bar.addView(input, ui.weight())
         say = ui.button("Say", Ui.Kind.PRIMARY) { submit() }.apply { minWidth = ui.dp(76); minHeight = ui.dp(52) }
         bar.addView(say, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = ui.dp(8) })
@@ -273,6 +275,35 @@ class SpeakTab(private val act: MainActivity) {
         }
     }
 
+    /** Two taps: pick a category (any sound from it) or a specific sound; inserts a [tag] at the cursor. */
+    private fun pickSound() {
+        val cats = try { SfxLibrary.categories(act) } catch (e: Exception) { emptyList() }
+        if (cats.isEmpty()) return
+        AlertDialog.Builder(act)
+            .setTitle("Add a sound to the line")
+            .setItems(cats.map { "${it.icon}  ${it.title}" }.toTypedArray()) { _, i ->
+                val c = cats[i]
+                val labels = listOf("🎲  Any ${c.title.lowercase()} sound") + c.sounds.map { "▸  ${it.label}" }
+                AlertDialog.Builder(act)
+                    .setTitle("${c.icon} ${c.title}")
+                    .setItems(labels.toTypedArray()) { _, j -> insertTag(if (j == 0) c.key else c.sounds[j - 1].label) }
+                    .setNegativeButton("Back") { _, _ -> pickSound() }
+                    .show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun insertTag(tag: String) {
+        val t = input.text ?: return
+        val at = input.selectionStart.coerceIn(0, t.length)
+        val before = if (at > 0 && !t[at - 1].isWhitespace()) " " else ""
+        val ins = "$before[$tag] "
+        t.insert(at, ins)
+        input.setSelection((at + ins.length).coerceAtMost(input.text.length))
+        input.requestFocus()
+    }
+
     // ---------- actions ----------
 
     private fun submit() {
@@ -285,7 +316,13 @@ class SpeakTab(private val act: MainActivity) {
     private fun remake(line: Line) { if (!busy && act.voicesReady) record(line, isNew = false) }
 
     private fun record(line: Line, isNew: Boolean) {
-        val opts = Performer.Options(speakers(), activeStyles(), smooth)
+        val appCtx = act.applicationContext
+        val opts = Performer.Options(speakers(), activeStyles(), smooth) { tag ->
+            SfxLibrary.find(appCtx, tag)?.let { fx ->
+                try { AudioDsp.matchLoudness(AudioDsp.trim(AudioImport.decodeAsset(appCtx, fx.file, 12), 0.004f), 0.07f) to fx.label }
+                catch (e: Exception) { null }
+            }
+        }
         act.stopPlayback()
         setBusy(true, "Stealing voices…")
         stop.visibility = View.VISIBLE

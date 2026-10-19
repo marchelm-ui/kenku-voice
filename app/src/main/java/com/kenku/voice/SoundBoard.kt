@@ -32,6 +32,25 @@ object SfxLibrary {
     }
 
     fun all(context: Context) = categories(context).flatMap { it.sounds }
+
+    /**
+     * Finds a sound for a tag typed into a line, like [coins], [door creak] or [goblin].
+     * Matches sound names first, then whole categories; picks one at random so repeats vary.
+     */
+    fun find(context: Context, tag: String): Sfx? {
+        val words = tag.lowercase().split(Regex("[^a-z0-9]+")).filter { it.length > 1 }
+            .map { it.removeSuffix("s").ifEmpty { it } }
+        if (words.isEmpty()) return null
+        val cats = categories(context)
+        val exact = cats.flatMap { it.sounds }.filter { s -> s.label.lowercase().removeSuffix("s").trim() == tag.lowercase().removeSuffix("s").trim() }
+        if (exact.isNotEmpty()) return exact.random()
+        val byName = cats.flatMap { it.sounds }.filter { s -> val l = s.label.lowercase(); words.all { l.contains(it) } }
+        if (byName.isNotEmpty()) return byName.random()
+        val byCat = cats.filter { c -> val t = (c.key + " " + c.title + " " + c.desc).lowercase(); words.all { t.contains(it) } }
+        if (byCat.isNotEmpty()) return byCat.random().sounds.random()
+        val loose = cats.flatMap { it.sounds }.filter { s -> val l = s.label.lowercase(); words.any { l.contains(it) } }
+        return loose.randomOrNull()
+    }
 }
 
 /** Plays sound effects instantly; several can overlap, and any can be stopped. */

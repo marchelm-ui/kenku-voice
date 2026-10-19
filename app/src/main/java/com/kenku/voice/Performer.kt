@@ -70,7 +70,13 @@ class StreamPlayer(private val onFinished: () -> Unit) {
  */
 class Performer(private val engine: VoiceEngine) {
 
-    data class Options(val speakers: List<Speaker>, val styles: List<Style>, val smooth: Boolean)
+    data class Options(
+        val speakers: List<Speaker>,
+        val styles: List<Style>,
+        val smooth: Boolean,
+        /** Finds audio for a [sound] tag such as "coins" (24 kHz), plus its friendly name. */
+        val soundFor: (String) -> Pair<FloatArray, String>? = { null },
+    )
     data class Result(val parts: List<String>, val file: File)
 
     @Volatile private var cancelled = false
@@ -90,7 +96,7 @@ class Performer(private val engine: VoiceEngine) {
         cancelled = false
         val chunks = Chunker.split(text)
         if (chunks.isEmpty()) throw IllegalArgumentException("Nothing to say")
-        val speakers = opts.speakers.ifEmpty { throw IllegalStateException("No voices selected") }
+        var speakers = opts.speakers.ifEmpty { throw IllegalStateException("No voices selected") }
         val styles = opts.styles.ifEmpty { listOf(Catalog.styles.first()) }
         val totalWords = chunks.sumOf { it.words.size }
         val xf = AudioDsp.RATE * (if (opts.smooth) 40 else 12) / 1000
@@ -114,12 +120,37 @@ class Performer(private val engine: VoiceEngine) {
             for ((i, c) in chunks.withIndex()) {
                 if (cancelled) break
                 onProgress(i, chunks.size)
-                val speaker = pick(speakers, last, lastGroup)
+
+                // A mimicked sound effect: cut cleanly to it and back.
+                if (c.sound != null) {
+                    val found = opts.soundFor(c.sound)
+                    if (found == null) { parts.add("[${c.sound}: no matching sound]"); continue }
+                    val (fx, name) = found
+                    tail?.let { t -> for (k in t.indices) t[k] *= AudioDsp.fadeOutGain(k, t.size); emit(t) }
+                    tail = null
+                    emit(FloatArray(AudioDsp.RATE * 60 / 1000))
+                    emit(AudioDsp.fadeEdges(fx.copyOf()))
+                    emit(FloatArray(AudioDsp.RATE * 80 / 1000))
+                    parts.add("[$name]")
+                    audioSec += fx.size / AudioDsp.RATE.toDouble()
+                    continue
+                }
+
+                var speaker = pick(speakers, last, lastGroup)
                 val style = if (styles.size > 1) styles.filter { it != lastStyle }.random() else styles[0]
-                last = speaker; lastGroup = groupOf(speaker); lastStyle = style
 
                 val t0 = SystemClock.uptimeMillis()
-                val s = engine.speak(c.spoken, speaker, style, opts.smooth)
+                val s = try {
+                    engine.speak(c.spoken, speaker, style, opts.smooth)
+                } catch (e: Throwable) {
+                    // A clone that can't be voiced shouldn't ruin the line: drop clones and use a built-in voice.
+                    val builtin = speakers.filterIsInstance<Speaker.Builtin>()
+                    if (speaker !is Speaker.Cloned || builtin.isEmpty()) throw e
+                    speakers = builtin
+                    speaker = pick(speakers, last, lastGroup)
+                    engine.speak(c.spoken, speaker, style, opts.smooth)
+                }
+                last = speaker; lastGroup = groupOf(speaker); lastStyle = style
                 genMs += SystemClock.uptimeMillis() - t0
                 if (cancelled) break
                 if (s.isEmpty()) continue
@@ -150,7 +181,7 @@ class Performer(private val engine: VoiceEngine) {
 
                 audioSec += s.size / AudioDsp.RATE.toDouble()
                 words += c.words.size
-                if (!started) {
+                if (!started && words > 0) {
                     // Start as soon as the rest can be generated before playback catches up.
                     val remWords = totalWords - words
                     val estRemAudio = audioSec / words * remWords

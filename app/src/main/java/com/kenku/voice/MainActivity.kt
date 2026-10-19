@@ -87,6 +87,8 @@ class MainActivity : AppCompatActivity() {
                 voicesReady = error == null
                 speak.onVoicesLoaded(error)
                 clonesTab.refresh()
+                // Warm up the cloning model in the background so the first cloned line isn't slow.
+                if (voicesReady && clones.list().isNotEmpty()) engineThread.execute { engine.loadPocket() }
             }
         }
     }
