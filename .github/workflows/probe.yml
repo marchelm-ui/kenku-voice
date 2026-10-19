@@ -2,34 +2,43 @@ name: Probe Kokoro files
 on:
   push:
     branches: [probe]
+    paths: [".github/workflows/probe.yml"]
+permissions:
+  contents: write
 jobs:
   probe:
     runs-on: ubuntu-24.04
     steps:
-      - name: sherpa-onnx on Maven Central
+      - uses: actions/checkout@v5
+      - name: Probe
         run: |
-          curl -s https://repo1.maven.org/maven2/com/k2fsa/sherpa/onnx/sherpa-onnx-android/maven-metadata.xml | sed -n '1,60p'
-      - name: latest GitHub release assets
-        run: |
-          curl -s https://api.github.com/repos/k2-fsa/sherpa-onnx/releases/latest | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['tag_name'],d['published_at']);[print(a['name'],a['size']) for a in d['assets'] if a['name'].endswith('.aar') or 'android' in a['name'].lower()]"
-      - name: inspect the AAR
-        run: |
+          set +e
+          exec > probe-out.txt 2>&1
+          echo "== maven metadata"
+          curl -s https://repo1.maven.org/maven2/com/k2fsa/sherpa/onnx/sherpa-onnx-android/maven-metadata.xml | sed -n '1,80p'
+          echo "== latest release"
+          curl -s https://api.github.com/repos/k2-fsa/sherpa-onnx/releases/latest | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('tag_name'),d.get('published_at'));[print(a['name'],a['size']) for a in d.get('assets',[]) if a['name'].endswith('.aar') or 'android' in a['name'].lower() or 'jni' in a['name'].lower()]"
           V=$(curl -s https://repo1.maven.org/maven2/com/k2fsa/sherpa/onnx/sherpa-onnx-android/maven-metadata.xml | grep -oP '(?<=<release>)[^<]+')
-          echo "release=$V"
-          curl -sL -o s.aar https://repo1.maven.org/maven2/com/k2fsa/sherpa/onnx/sherpa-onnx-android/$V/sherpa-onnx-android-$V.aar || true
-          ls -la s.aar; unzip -l s.aar | head -40
-          unzip -o -q s.aar classes.jar && unzip -l classes.jar | grep -i -E 'tts|Tts' | head -40
+          echo "== maven release=$V"
+          curl -s https://repo1.maven.org/maven2/com/k2fsa/sherpa/onnx/sherpa-onnx-android/$V/ | sed -n '1,40p'
           curl -s https://repo1.maven.org/maven2/com/k2fsa/sherpa/onnx/sherpa-onnx-android/$V/sherpa-onnx-android-$V.pom
-      - name: Kotlin TTS API source
-        run: |
-          curl -s https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/master/sherpa-onnx/kotlin-api/Tts.kt | sed -n '1,260p'
-      - name: Kokoro model archives
-        run: |
+          curl -sL -o s.aar https://repo1.maven.org/maven2/com/k2fsa/sherpa/onnx/sherpa-onnx-android/$V/sherpa-onnx-android-$V.aar
+          ls -la s.aar; unzip -l s.aar | head -40
+          unzip -o -q s.aar classes.jar && unzip -l classes.jar | head -80
+          echo "== Tts.kt"
+          curl -s https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/master/sherpa-onnx/kotlin-api/Tts.kt
+          echo "== model sizes"
           for m in kokoro-int8-multi-lang-v1_1 kokoro-multi-lang-v1_1 kokoro-int8-multi-lang-v1_0 kokoro-multi-lang-v1_0 kokoro-int8-en-v0_19; do
-            curl -sIL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/$m.tar.bz2 | grep -i -E '^HTTP|content-length' | tail -2 | tr '\n' ' '; echo " <- $m"
+            echo "$m $(curl -sIL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/$m.tar.bz2 | grep -i -E '^HTTP|content-length' | tail -2 | tr '\r\n' '  ')"
           done
           curl -sL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-int8-multi-lang-v1_1.tar.bz2 | tar xjf -
-          du -sh kokoro-int8-multi-lang-v1_1; ls -la kokoro-int8-multi-lang-v1_1; du -sh kokoro-int8-multi-lang-v1_1/*
-          cat kokoro-int8-multi-lang-v1_1/README.md || true
-          find kokoro-int8-multi-lang-v1_1 -name '*.txt' -maxdepth 1 | xargs -n1 basename
-          ls kokoro-int8-multi-lang-v1_1/espeak-ng-data | head; ls kokoro-int8-multi-lang-v1_1/dict | head
+          D=kokoro-int8-multi-lang-v1_1
+          du -sh $D; ls -la $D; du -sh $D/*
+          cat $D/README.md
+          ls $D/espeak-ng-data | head -20; ls $D/dict | head
+          echo "== speakers (any txt/json listing)"
+          ls $D | grep -i -E 'speaker|voice|json'
+      - name: Save results
+        run: |
+          git config user.name probe; git config user.email probe@users.noreply.github.com
+          git add probe-out.txt && git commit -m "probe results" && git push
