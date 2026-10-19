@@ -44,10 +44,16 @@ jobs:
           cp -r $D/espeak-ng-data app/src/main/assets/kokoro/
           du -sh app/src/main/assets/kokoro
 
+      - name: Test every voice with the same engine version
+        run: |
+          set -o pipefail
+          python3 -m pip install --quiet sherpa-onnx==1.13.8 numpy
+          python3 tools/voice_test.py app/src/main/assets/kokoro kenku-sample.wav 2>&1 | tee build-log.txt
+
       - name: Build the APK
         run: |
           set -o pipefail
-          gradle :app:assembleRelease --no-daemon 2>&1 | tee build-log.txt
+          gradle :app:assembleRelease --no-daemon 2>&1 | tee -a build-log.txt
 
       - name: Name the APK
         run: cp app/build/outputs/apk/release/app-release.apk KenkuVoice.apk
@@ -78,7 +84,9 @@ jobs:
           tag_name: build-${{ github.run_number }}
           name: Kenku Voice build ${{ github.run_number }}
           body: Download KenkuVoice.apk below on your Android phone and open it to install. Includes 54 Kokoro voices; it is a large download (about 200 MB).
-          files: KenkuVoice.apk
+          files: |
+            KenkuVoice.apk
+            kenku-sample.wav
           make_latest: true
 
       - name: Save the error log if the build failed
