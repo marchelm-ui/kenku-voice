@@ -14,24 +14,22 @@ jobs:
         run: |
           set +e
           exec > probe-out.txt 2>&1
-          curl -sL -o s.aar https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.13.8/sherpa-onnx-1.13.8.aar
-          ls -la s.aar; unzip -l s.aar
-          unzip -o -q s.aar classes.jar jni/arm64-v8a/* AndroidManifest.xml
-          echo "== classes"; unzip -l classes.jar | grep -v '\$' | head -80
-          echo "== manifest"; cat AndroidManifest.xml
-          echo "== 16KB alignment arm64"
-          for f in jni/arm64-v8a/*.so; do echo "$f $(readelf -lW $f | awk '/LOAD/{print $NF}' | sort -u | tr '\n' ' ')"; done
-          echo "== static aar"
-          curl -sL -o st.aar https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.13.8/sherpa-onnx-static-link-onnxruntime-1.13.8.aar
-          unzip -l st.aar | grep -E 'jni|classes'
-          echo "== model v1_0 int8"
-          curl -sL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-int8-multi-lang-v1_0.tar.bz2 | tar xjf -
-          D=kokoro-int8-multi-lang-v1_0
-          ls -la $D; du -sh $D/*; cat $D/README.md
-          echo "== espeak top"; ls $D/espeak-ng-data; du -sh $D/espeak-ng-data/*  | sort -h | tail -8
-          echo "== Android TTS example MainActivity"
-          curl -s https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/master/android/SherpaOnnxTts/app/src/main/java/com/k2fsa/sherpa/onnx/MainActivity.kt | grep -n -i -E 'asset|copy|dataDir|espeak|getOfflineTtsConfig|lexicon|kokoro|externalFilesDir|filesDir' | head -60
+          python3 -m pip install --quiet sherpa-onnx==1.13.8 numpy
+          python3 tools/probe2.py
+          echo "== sfx crawl"
+          python3 tools/sfx_crawl.py https://opengameart.org/content/50-rpg-sound-effects https://opengameart.org/content/rpg-sound-pack https://opengameart.org/content/medieval-smith-pack https://opengameart.org/content/80-cc0-creature-sfx https://opengameart.org/content/100-cc0-sfx https://opengameart.org/content/100-cc0-sfx-2
+          echo "== sfx files"
+          for d in sfx_raw/*/; do echo "## $d $(ls $d | wc -l) files $(du -sh $d | cut -f1)"; ls $d | head -400; done
+          cd sfx_raw && zip -qr ../sfx-raw.zip . && cd .. && ls -la sfx-raw.zip
+      - name: Publish raw sounds for inspection
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: probe-sfx
+          name: probe-sfx (internal)
+          prerelease: true
+          files: sfx-raw.zip
       - name: Save results
+        if: always()
         run: |
           git config user.name probe; git config user.email probe@users.noreply.github.com
           git add probe-out.txt && git commit -m "probe results" && git push
