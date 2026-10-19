@@ -14,30 +14,23 @@ jobs:
         run: |
           set +e
           exec > probe-out.txt 2>&1
-          echo "== maven metadata"
-          curl -s https://repo1.maven.org/maven2/com/k2fsa/sherpa/onnx/sherpa-onnx-android/maven-metadata.xml | sed -n '1,80p'
-          echo "== latest release"
-          curl -s https://api.github.com/repos/k2-fsa/sherpa-onnx/releases/latest | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('tag_name'),d.get('published_at'));[print(a['name'],a['size']) for a in d.get('assets',[]) if a['name'].endswith('.aar') or 'android' in a['name'].lower() or 'jni' in a['name'].lower()]"
-          V=$(curl -s https://repo1.maven.org/maven2/com/k2fsa/sherpa/onnx/sherpa-onnx-android/maven-metadata.xml | grep -oP '(?<=<release>)[^<]+')
-          echo "== maven release=$V"
-          curl -s https://repo1.maven.org/maven2/com/k2fsa/sherpa/onnx/sherpa-onnx-android/$V/ | sed -n '1,40p'
-          curl -s https://repo1.maven.org/maven2/com/k2fsa/sherpa/onnx/sherpa-onnx-android/$V/sherpa-onnx-android-$V.pom
-          curl -sL -o s.aar https://repo1.maven.org/maven2/com/k2fsa/sherpa/onnx/sherpa-onnx-android/$V/sherpa-onnx-android-$V.aar
-          ls -la s.aar; unzip -l s.aar | head -40
-          unzip -o -q s.aar classes.jar && unzip -l classes.jar | head -80
-          echo "== Tts.kt"
-          curl -s https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/master/sherpa-onnx/kotlin-api/Tts.kt
-          echo "== model sizes"
-          for m in kokoro-int8-multi-lang-v1_1 kokoro-multi-lang-v1_1 kokoro-int8-multi-lang-v1_0 kokoro-multi-lang-v1_0 kokoro-int8-en-v0_19; do
-            echo "$m $(curl -sIL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/$m.tar.bz2 | grep -i -E '^HTTP|content-length' | tail -2 | tr '\r\n' '  ')"
-          done
-          curl -sL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-int8-multi-lang-v1_1.tar.bz2 | tar xjf -
-          D=kokoro-int8-multi-lang-v1_1
-          du -sh $D; ls -la $D; du -sh $D/*
-          cat $D/README.md
-          ls $D/espeak-ng-data | head -20; ls $D/dict | head
-          echo "== speakers (any txt/json listing)"
-          ls $D | grep -i -E 'speaker|voice|json'
+          curl -sL -o s.aar https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.13.8/sherpa-onnx-1.13.8.aar
+          ls -la s.aar; unzip -l s.aar
+          unzip -o -q s.aar classes.jar jni/arm64-v8a/* AndroidManifest.xml
+          echo "== classes"; unzip -l classes.jar | grep -v '\$' | head -80
+          echo "== manifest"; cat AndroidManifest.xml
+          echo "== 16KB alignment arm64"
+          for f in jni/arm64-v8a/*.so; do echo "$f $(readelf -lW $f | awk '/LOAD/{print $NF}' | sort -u | tr '\n' ' ')"; done
+          echo "== static aar"
+          curl -sL -o st.aar https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.13.8/sherpa-onnx-static-link-onnxruntime-1.13.8.aar
+          unzip -l st.aar | grep -E 'jni|classes'
+          echo "== model v1_0 int8"
+          curl -sL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-int8-multi-lang-v1_0.tar.bz2 | tar xjf -
+          D=kokoro-int8-multi-lang-v1_0
+          ls -la $D; du -sh $D/*; cat $D/README.md
+          echo "== espeak top"; ls $D/espeak-ng-data; du -sh $D/espeak-ng-data/*  | sort -h | tail -8
+          echo "== Android TTS example MainActivity"
+          curl -s https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/master/android/SherpaOnnxTts/app/src/main/java/com/k2fsa/sherpa/onnx/MainActivity.kt | grep -n -i -E 'asset|copy|dataDir|espeak|getOfflineTtsConfig|lexicon|kokoro|externalFilesDir|filesDir' | head -60
       - name: Save results
         run: |
           git config user.name probe; git config user.email probe@users.noreply.github.com
