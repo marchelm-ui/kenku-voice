@@ -38,6 +38,8 @@ class SpeakTab(private val act: MainActivity) {
     private lateinit var progress: ProgressBar
     private lateinit var quickWrap: LinearLayout
     private lateinit var quickRow: LinearLayout
+    private lateinit var filter: EditText
+    private var filterText = ""
 
     @Volatile private var busy = false
     @Volatile private var streaming = false
@@ -140,7 +142,25 @@ class SpeakTab(private val act: MainActivity) {
         root.addView(quickWrap)
 
         list = ui.column().apply { setPadding(ui.dp(16), ui.dp(6), ui.dp(16), ui.dp(16)) }
-        root.addView(ScrollView(act).apply { addView(list); isFillViewport = true }, LinearLayout.LayoutParams(-1, 0, 1f))
+        filter = EditText(act).apply {
+            id = View.generateViewId()
+            hint = "🔍  Find a saved line"
+            setSingleLine(true)
+            textSize = 15f
+            setTextColor(ui.c(R.color.ink)); setHintTextColor(ui.c(R.color.muted))
+            background = ui.rounded(ui.c(R.color.surface), ui.c(R.color.line))
+            setPadding(ui.dp(12), ui.dp(8), ui.dp(12), ui.dp(8))
+            addTextChangedListener(object : android.text.TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                override fun afterTextChanged(e: android.text.Editable?) { filterText = e?.toString()?.trim().orEmpty(); renderCards() }
+            })
+        }
+        // The search box sits outside the card list so typing in it never loses focus.
+        val host = ui.column()
+        host.addView(filter, LinearLayout.LayoutParams(-1, -2).apply { leftMargin = ui.dp(16); rightMargin = ui.dp(16); topMargin = ui.dp(6) })
+        host.addView(list)
+        root.addView(ScrollView(act).apply { addView(host); isFillViewport = true }, LinearLayout.LayoutParams(-1, 0, 1f))
 
         val bar = ui.row(Gravity.BOTTOM).apply {
             setPadding(ui.dp(12), ui.dp(10), ui.dp(12), ui.dp(10))
@@ -197,7 +217,13 @@ class SpeakTab(private val act: MainActivity) {
 
     private fun renderList() {
         renderQuick()
+        renderCards()
+    }
+
+    private fun renderCards() {
         list.removeAllViews()
+        filter.visibility = if (lines.size >= 6) View.VISIBLE else View.GONE
+        if (lines.size < 6) filterText = ""
         if (lines.isEmpty()) {
             list.addView(ui.body("Your lines will show up here.\n\nTry: You owe us gold. The tavern keeper said so.", 15f).apply {
                 background = ui.rounded(ui.c(R.color.bg), ui.c(R.color.line))
@@ -205,7 +231,10 @@ class SpeakTab(private val act: MainActivity) {
             })
             return
         }
-        val sorted = lines.filter { it.starred } + lines.filter { !it.starred }
+        val words = filterText.lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
+        val shown = lines.filter { l -> words.all { l.text.lowercase().contains(it) } }
+        val sorted = shown.filter { it.starred } + shown.filter { !it.starred }
+        if (sorted.isEmpty()) list.addView(ui.body("No saved lines match “$filterText”.", 14f))
         sorted.forEach { list.addView(card(it), ui.fill()) }
     }
 
@@ -280,6 +309,10 @@ class SpeakTab(private val act: MainActivity) {
             })
         }
         body.addView(fxGroup)
+        body.addView(ui.button("Hear this effect") {
+            val a = Catalog.accents.first()
+            preview(Speaker.Builtin(a.voices.random(), a), Catalog.styles.first(), "Did you hear that? Something moved in the dark.", effectKey)
+        }.apply { textSize = 13f; minHeight = ui.dp(40); minimumHeight = ui.dp(40) }, ui.wrap())
         heading("Screen", "")
         row("Keep screen awake", "Stops the phone from locking while the app is open, handy at the table", awakeOn, { awakeOn = it }, null)
 
@@ -316,12 +349,16 @@ class SpeakTab(private val act: MainActivity) {
     }
 
     private var previewing = false
-    private fun preview(speaker: Speaker, style: Style, text: String) {
+    private fun preview(speaker: Speaker, style: Style, text: String, fxKey: String = "none") {
         if (busy || previewing || !act.voicesReady) return
         previewing = true
         val out = File(act.cacheDir, "preview.wav")
         act.engineThread.execute {
-            val ok = try { AudioDsp.writeWav(act.engine.speak(text, speaker, style, smooth, wild), out); true } catch (e: Throwable) { false }
+            val ok = try {
+                val fx = LineEffect(fxKey)
+                val dry = fx.process(act.engine.speak(text, speaker, style, smooth, wild))
+                AudioDsp.writeWav(dry + fx.tail(), out); true
+            } catch (e: Throwable) { false }
             act.main.post {
                 previewing = false
                 if (!act.alive) return@post
