@@ -283,6 +283,7 @@ class MainActivity : AppCompatActivity() {
         if (!::engine.isInitialized || !engine.isReady) {
             Toast.makeText(this, "Voices are still loading", Toast.LENGTH_SHORT).show(); return
         }
+        if (busy) { Toast.makeText(this, "One moment, still recording a line", Toast.LENGTH_SHORT).show(); return }
         refreshAccents()
         val offA = offSet("off_accents").toMutableSet()
         val offS = offSet("off_styles").toMutableSet()
