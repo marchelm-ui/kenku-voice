@@ -23,11 +23,48 @@ jobs:
         with:
           gradle-version: "8.7"
 
+      - name: Reuse downloaded voice files
+        uses: actions/cache@v4
+        with:
+          path: dl
+          key: sherpa-onnx-1.13.8-kokoro-int8-multi-lang-v1_0
+
+      - name: Get the speech engine and Kokoro voices
+        run: |
+          set -euo pipefail
+          mkdir -p dl app/libs app/src/main/assets/kokoro
+          [ -s dl/sherpa-onnx.aar ] || curl -fL --retry 3 -o dl/sherpa-onnx.aar \
+            https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.13.8/sherpa-onnx-1.13.8.aar
+          [ -s dl/kokoro.tar.bz2 ] || curl -fL --retry 3 -o dl/kokoro.tar.bz2 \
+            https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-int8-multi-lang-v1_0.tar.bz2
+          cp dl/sherpa-onnx.aar app/libs/sherpa-onnx.aar
+          tar xjf dl/kokoro.tar.bz2
+          D=kokoro-int8-multi-lang-v1_0
+          cp $D/model.int8.onnx $D/voices.bin $D/tokens.txt $D/lexicon-us-en.txt $D/lexicon-zh.txt app/src/main/assets/kokoro/
+          cp -r $D/espeak-ng-data app/src/main/assets/kokoro/
+          du -sh app/src/main/assets/kokoro
+
       - name: Build the APK
-        run: gradle :app:assembleRelease --no-daemon
+        run: |
+          set -o pipefail
+          gradle :app:assembleRelease --no-daemon 2>&1 | tee build-log.txt
 
       - name: Name the APK
         run: cp app/build/outputs/apk/release/app-release.apk KenkuVoice.apk
+
+      - name: Check the APK
+        run: |
+          set -euo pipefail
+          ls -la KenkuVoice.apk
+          unzip -l KenkuVoice.apk | grep -q 'lib/arm64-v8a/libsherpa-onnx-jni.so'
+          unzip -l KenkuVoice.apk | grep -q 'lib/arm64-v8a/libonnxruntime.so'
+          unzip -l KenkuVoice.apk | grep -q 'assets/kokoro/model.int8.onnx'
+          unzip -l KenkuVoice.apk | grep -q 'assets/kokoro/voices.bin'
+          unzip -l KenkuVoice.apk | grep -q 'assets/kokoro/espeak-ng-data/phontab'
+          ZA=$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -1)zipalign
+          $ZA -c -P 16 4 KenkuVoice.apk && echo "16 KB page alignment OK"
+          APKSIGNER=$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -1)apksigner
+          $APKSIGNER verify --print-certs KenkuVoice.apk | head -3
 
       - name: Keep the APK with this run
         uses: actions/upload-artifact@v4
@@ -40,6 +77,18 @@ jobs:
         with:
           tag_name: build-${{ github.run_number }}
           name: Kenku Voice build ${{ github.run_number }}
-          body: Download KenkuVoice.apk below on your Android phone and open it to install.
+          body: Download KenkuVoice.apk below on your Android phone and open it to install. Includes 54 Kokoro voices; it is a large download (about 200 MB).
           files: KenkuVoice.apk
           make_latest: true
+
+      - name: Save the error log if the build failed
+        if: failure()
+        run: |
+          git config user.name build-bot
+          git config user.email build-bot@users.noreply.github.com
+          git checkout --orphan build-logs
+          git rm -rf --cached . > /dev/null
+          tail -c 200000 build-log.txt > failure-log.txt 2>/dev/null || echo "no gradle log" > failure-log.txt
+          git add -f failure-log.txt
+          git commit -m "Build ${{ github.run_number }} failure log"
+          git push -f origin build-logs

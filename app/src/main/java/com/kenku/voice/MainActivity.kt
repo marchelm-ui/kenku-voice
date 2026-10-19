@@ -1,6 +1,5 @@
 package com.kenku.voice
 
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -9,8 +8,6 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings
-import android.speech.tts.TextToSpeech
 import android.text.InputType
 import android.util.TypedValue
 import android.view.Gravity
@@ -37,11 +34,14 @@ import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var engine: KenkuEngine
+    private lateinit var engine: KokoroEngine
+    // Every model call runs on this one thread.
     private val worker = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     private var player: MediaPlayer? = null
     @Volatile private var busy = false
+    @Volatile private var loaded = false
+    private var previewing = false
 
     private lateinit var list: LinearLayout
     private lateinit var input: EditText
@@ -52,11 +52,10 @@ class MainActivity : AppCompatActivity() {
     private val prefs by lazy { getSharedPreferences("kenku", MODE_PRIVATE) }
     private val linesDir by lazy { File(filesDir, "lines").apply { mkdirs() } }
     private val indexFile by lazy { File(filesDir, "lines.json") }
-    private val tmpDir by lazy { File(cacheDir, "chunks") }
 
     data class Line(val id: String, val text: String, var voices: String, var starred: Boolean = false)
     private val lines = mutableListOf<Line>()
-    private var accents: List<Accent> = emptyList()
+    private val accents: List<Accent> = Catalog.accents
 
     private fun c(id: Int) = ContextCompat.getColor(this, id)
     private fun dp(v: Int) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v.toFloat(), resources.displayMetrics).toInt()
@@ -66,20 +65,17 @@ class MainActivity : AppCompatActivity() {
         buildUi()
         loadLines()
         renderList()
-        setBusy(true, "Waking up the voices…")
-        engine = KenkuEngine(this) { ok ->
+        updateCastInfo()
+        setBusy(true, "Loading the voices… the first launch takes a little longer.")
+        engine = KokoroEngine(applicationContext)
+        worker.execute {
+            val error = try { engine.load(); null } catch (e: Throwable) { e }
             main.post {
                 if (isFinishing || isDestroyed) return@post
-                if (ok) { refreshAccents(); setBusy(false, "") }
-                else setBusy(true, "No text-to-speech engine found. Install \"Speech Services by Google\" from the Play Store, then reopen the app.")
+                if (error == null) { loaded = true; setBusy(false, "") }
+                else setBusy(true, "The voices couldn't load (${error.javaClass.simpleName}). Close other apps and reopen Kenku Voice.")
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Voices downloaded in Android settings show up when you come back.
-        if (::engine.isInitialized && engine.isReady && !busy) refreshAccents()
     }
 
     override fun onStop() {
@@ -89,8 +85,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         player?.release(); player = null
-        if (::engine.isInitialized) engine.shutdown()
-        worker.shutdownNow()
+        // Free the model on the same thread that uses it, after any line in progress.
+        if (::engine.isInitialized) worker.execute { engine.release() }
+        worker.shutdown()
         super.onDestroy()
     }
 
@@ -99,15 +96,9 @@ class MainActivity : AppCompatActivity() {
     private fun offSet(key: String): Set<String> = prefs.getStringSet(key, emptySet()) ?: emptySet()
     private fun setOff(key: String, v: Set<String>) { prefs.edit().putStringSet(key, HashSet(v)).apply() }
 
-    private fun refreshAccents() {
-        accents = engine.accents()
-        updateCastInfo()
-    }
-
     private fun activeAccents(): List<Accent> {
         val off = offSet("off_accents")
-        val on = accents.filter { it.installed && it.key !in off }
-        return on.ifEmpty { accents.filter { it.installed } }
+        return accents.filter { it.key !in off }.ifEmpty { accents }
     }
 
     private fun activeStyles(): List<Style> {
@@ -116,9 +107,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateCastInfo() {
-        val a = activeAccents().size
-        val s = activeStyles().size
-        castInfo.text = if (accents.isEmpty()) "" else "$a accents × $s styles in your kenku's collection"
+        val a = activeAccents()
+        castInfo.text = "${a.sumOf { it.voices.size }} voices · ${a.size} accents · ${activeStyles().size} styles"
     }
 
     // ---------- UI ----------
@@ -280,11 +270,8 @@ class MainActivity : AppCompatActivity() {
     // ---------- voices screen ----------
 
     private fun openVoices() {
-        if (!::engine.isInitialized || !engine.isReady) {
-            Toast.makeText(this, "Voices are still loading", Toast.LENGTH_SHORT).show(); return
-        }
+        if (!loaded) { Toast.makeText(this, "Voices are still loading", Toast.LENGTH_SHORT).show(); return }
         if (busy) { Toast.makeText(this, "One moment, still recording a line", Toast.LENGTH_SHORT).show(); return }
-        refreshAccents()
         val offA = offSet("off_accents").toMutableSet()
         val offS = offSet("off_styles").toMutableSet()
 
@@ -293,101 +280,85 @@ class MainActivity : AppCompatActivity() {
             body.addView(TextView(this).apply { text = t; textSize = 18f; setTypeface(typeface, Typeface.BOLD); setTextColor(c(R.color.ink)); setPadding(0, dp(12), 0, 0) })
             body.addView(TextView(this).apply { text = sub; textSize = 13f; setTextColor(c(R.color.muted)); setPadding(0, dp(2), 0, dp(6)) })
         }
-        fun row(label: String, detail: String, checked: Boolean?, onToggle: (Boolean) -> Unit, actionLabel: String, action: () -> Unit) {
+        fun row(label: String, detail: String, checked: Boolean, onToggle: (Boolean) -> Unit, onHear: () -> Unit) {
             val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(0, dp(4), 0, dp(4)) }
             val texts = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
             texts.addView(TextView(this).apply { text = label; textSize = 16f; setTextColor(c(R.color.ink)) })
             texts.addView(TextView(this).apply { text = detail; textSize = 12f; setTextColor(c(R.color.muted)) })
-            if (checked != null) {
-                val cb = CheckBox(this).apply { isChecked = checked; setOnCheckedChangeListener { _, v -> onToggle(v) }; contentDescription = label }
-                r.addView(cb)
-                texts.setOnClickListener { cb.isChecked = !cb.isChecked }
-            } else {
-                r.addView(View(this), LinearLayout.LayoutParams(dp(40), 1))
-            }
+            val cb = CheckBox(this).apply { isChecked = checked; setOnCheckedChangeListener { _, v -> onToggle(v) }; contentDescription = label }
+            texts.setOnClickListener { cb.isChecked = !cb.isChecked }
+            r.addView(cb)
             r.addView(texts, LinearLayout.LayoutParams(0, -2, 1f))
-            r.addView(button(actionLabel) { action() }.apply { textSize = 13f; minHeight = dp(40); minimumHeight = dp(40) })
+            r.addView(button("Hear") { onHear() }.apply { textSize = 13f; minHeight = dp(40); minimumHeight = dp(40) })
             body.addView(r)
         }
 
-        val installed = accents.filter { it.installed }
-        val missing = accents.filter { !it.installed }
         val sample = "Squawk! You owe us gold, friend."
-
+        heading("Accents", "Untick any you don't want. Hear plays a random voice from that accent.")
+        accents.forEach { a ->
+            val names = a.voices.joinToString(", ") { it.name.substringBefore(" (") }
+            row("${a.label} (${a.voices.size})", "${a.detail}: $names", a.key !in offA,
+                { v -> if (v) offA.remove(a.key) else offA.add(a.key) }) { preview(a, Catalog.styles.first(), sample) }
+        }
         heading("Speaking styles", "Each chunk also gets a random style. Untick any you don't want.")
-        Catalog.styles.forEach { s ->
-            row(s.label, "pitch ${"%.1f".format(s.pitch)} · speed ${"%.1f".format(s.rate)}", s.key !in offS,
-                { v -> if (v) offS.remove(s.key) else offS.add(s.key) }, "Hear") {
-                engine.preview(installed.firstOrNull { it.key == "en-US" } ?: installed.firstOrNull(), s, sample)
-            }
-        }
-
-        heading("Accents on your phone (${installed.size})", "Native English voices, plus voices from other cultures reading English with their accent. Untick any you don't want.")
-        installed.forEach { a ->
-            row(a.label, a.detail, a.key !in offA, { v -> if (v) offA.remove(a.key) else offA.add(a.key) }, "Hear") {
-                engine.preview(a, Catalog.styles.first(), sample)
-            }
-        }
-
-        if (missing.isNotEmpty()) {
-            heading("More accents to download (${missing.size})", "Free from Google. Tap Get voices, download a language, then come back here.")
-            missing.forEach { a -> row(a.label, a.detail, null, {}, "Get voices") { openVoiceDownloads() } }
+        Catalog.styles.forEach { st ->
+            row(st.label, "pitch ×${"%.2f".format(st.pitch)} · speed ×${"%.2f".format(st.rate)}", st.key !in offS,
+                { v -> if (v) offS.remove(st.key) else offS.add(st.key) }) { preview(accents.first(), st, sample) }
         }
 
         AlertDialog.Builder(this)
             .setTitle("Your kenku's voices")
             .setView(ScrollView(this).apply { addView(body) })
-            .setPositiveButton("Done") { _, _ ->
-                setOff("off_accents", offA); setOff("off_styles", offS); updateCastInfo()
-            }
+            .setPositiveButton("Done") { _, _ -> setOff("off_accents", offA); setOff("off_styles", offS); updateCastInfo() }
             .setNegativeButton("Cancel", null)
-            .setOnDismissListener { engine.stopPreview() }
             .show()
     }
 
-    private fun openVoiceDownloads() {
-        val tries = listOf(
-            Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA).setPackage(KenkuEngine.GOOGLE_TTS),
-            Intent("com.android.settings.TTS_SETTINGS"),
-            Intent(Settings.ACTION_SETTINGS),
-        )
-        for (i in tries) {
-            try { startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); return } catch (e: ActivityNotFoundException) {} catch (e: SecurityException) {}
+    private fun preview(accent: Accent, style: Style, text: String) {
+        if (busy || previewing || !loaded) return
+        previewing = true
+        val out = File(cacheDir, "preview.wav")
+        worker.execute {
+            val ok = try { engine.preview(accent, style, text, out); true } catch (e: Throwable) { false }
+            main.post {
+                previewing = false
+                if (isFinishing || isDestroyed) return@post
+                if (ok) playFile(out) else Toast.makeText(this, "Couldn't play that sample", Toast.LENGTH_SHORT).show()
+            }
         }
-        Toast.makeText(this, "Open Settings → System → Languages → Text-to-speech to add voices", Toast.LENGTH_LONG).show()
     }
 
     // ---------- actions ----------
 
     private fun submit() {
         val text = input.text.toString().replace(Regex("\\s+"), " ").trim().take(500)
-        if (text.isEmpty() || busy) return
+        if (text.isEmpty() || busy || !loaded) return
         input.setText("")
         record(Line(System.currentTimeMillis().toString(), text, ""), isNew = true)
     }
 
-    private fun remake(line: Line) { if (!busy) record(line, isNew = false) }
+    private fun remake(line: Line) { if (!busy && loaded) record(line, isNew = false) }
 
     private fun record(line: Line, isNew: Boolean) {
-        if (!::engine.isInitialized || !engine.isReady) return
-        if (accents.isEmpty()) refreshAccents()
+        if (!loaded || busy) return
         val useAccents = activeAccents()
         val useStyles = activeStyles()
-        engine.stopPreview()
         setBusy(true, "Stealing voices…")
         worker.execute {
             try {
-                val res = engine.render(line.text, useAccents, useStyles, fileFor(line), tmpDir)
-                line.voices = res.parts.joinToString("  ·  ") { it.voiceLabel }
+                val res = engine.render(line.text, useAccents, useStyles, fileFor(line)) { done, total ->
+                    main.post { if (busy) status.text = "Stealing voices… $done of $total" }
+                }
+                line.voices = res.parts.joinToString("  ·  ") { it.label }
                 main.post {
                     if (isFinishing || isDestroyed) return@post
                     if (isNew) lines.add(0, line)
                     saveLines(); renderList(); setBusy(false, ""); play(line)
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 main.post {
                     if (isFinishing || isDestroyed) return@post
-                    setBusy(false, "Couldn't make that line. Try plain words, or open Voices to add more accents.")
+                    setBusy(false, "Couldn't make that line. Try plain words and avoid unusual symbols.")
                 }
             }
         }
@@ -398,6 +369,10 @@ class MainActivity : AppCompatActivity() {
     private fun play(line: Line) {
         val f = fileFor(line)
         if (!f.exists()) { remake(line); return }
+        playFile(f)
+    }
+
+    private fun playFile(f: File) {
         player?.release()
         player = try {
             MediaPlayer().apply {
@@ -409,7 +384,7 @@ class MainActivity : AppCompatActivity() {
                 prepare(); start()
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Couldn't play that line. Tap New voices to remake it.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Couldn't play that audio. Tap New voices to remake it.", Toast.LENGTH_LONG).show()
             null
         }
     }

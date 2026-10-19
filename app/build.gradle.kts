@@ -12,7 +12,18 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
-        versionName = "1.0." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
+        versionName = "2.0." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
+        // Pixel phones are 64-bit ARM; leaving out other chips keeps the app ~100 MB smaller.
+        ndk { abiFilters += listOf("arm64-v8a") }
+    }
+
+    // Keep the voice model uncompressed so it loads quickly.
+    androidResources {
+        noCompress += listOf("onnx", "bin")
+    }
+
+    packaging {
+        jniLibs { useLegacyPackaging = false }
     }
 
     // A fixed key so each new build installs over the old one without losing saved lines.
@@ -41,10 +52,14 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+        // The voice library is compiled with a newer Kotlin; its classes are still compatible.
+        freeCompilerArgs += listOf("-Xskip-metadata-version-check")
     }
 }
 
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
+    // sherpa-onnx (offline speech engine), downloaded by the build workflow.
+    implementation(files("libs/sherpa-onnx.aar"))
 }
