@@ -9,7 +9,8 @@ account, no internet, no subscription.
 snippets and each one is spoken by a different stolen voice, blended together and
 streamed so it starts talking in under a second. Add sound effects mid-sentence
 with **+ Sound** (for example `Pay up [coins] or else`). Every line is saved for
-instant replay, re-voicing, pinning and sharing.
+instant replay, re-voicing, pinning and sharing; pinned lines become one-tap
+**⚡ Quick lines** at the top.
 
 **🎭 Clones** – Record about 10 seconds of someone talking (or import an audio
 file), give the voice a name, and your kenku can mimic them. Each clone can be
@@ -19,7 +20,9 @@ people who are happy for you to.
 **🔔 Sounds** – A medieval soundboard with 467 sounds in 11 categories: Doors &
 Locks, Creaks & Wood, Coins & Treasure, Tavern & Food, Home & Workshop, Weapons &
 Armor, People, Animals, Monsters, Magic, and Nature & Weather. Tap to play, tap
-again to stop, star favorites, search by name.
+again to stop, hold for loop / favorite / use in a line, search by name, and set
+the volume. **🦜 My Mimicry** records real sounds at the table (a laugh, a door,
+a friend's catchphrase) to replay later or drop into lines, just like a kenku.
 
 ## Install on your phone
 

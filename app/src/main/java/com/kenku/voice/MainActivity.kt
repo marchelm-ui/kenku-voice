@@ -135,6 +135,9 @@ class MainActivity : AppCompatActivity() {
         if (i == 1) clonesTab.refresh()
     }
 
+    /** Jumps to the Speak tab and drops text (such as a [sound] tag) into the line being typed. */
+    fun insertIntoSpeak(text: String) { select(0); speak.insert(text) }
+
     /** Asks for the microphone only when the user starts recording a clone. */
     fun withMic(then: (Boolean) -> Unit) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) { then(true); return }

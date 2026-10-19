@@ -6,9 +6,55 @@ import android.media.MediaPlayer
 import android.media.SoundPool
 import android.os.Handler
 import android.os.Looper
+import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
 
-data class Sfx(val id: String, val label: String, val file: String, val seconds: Float, val category: String)
+/** A sound effect. [file] is an asset path, or an absolute path for sounds the user recorded. */
+data class Sfx(val id: String, val label: String, val file: String, val seconds: Float, val category: String) {
+    val isUserFile get() = file.startsWith("/")
+}
+
+/**
+ * Kenku Mimicry: real sounds the user records at the table (a laugh, a door, a friend's
+ * catchphrase), saved as playable sounds and usable as [tags] in lines.
+ */
+object MimicStore {
+    const val CATEGORY = "mimic"
+    private fun dir(ctx: Context) = File(ctx.filesDir, "mimic").apply { mkdirs() }
+    private fun index(ctx: Context) = File(dir(ctx), "index.json")
+
+    fun list(ctx: Context): List<Sfx> = try {
+        val arr = JSONArray(index(ctx).readText())
+        (0 until arr.length()).map { i ->
+            val o = arr.getJSONObject(i)
+            Sfx(o.getString("id"), o.getString("label"), File(dir(ctx), o.getString("id") + ".wav").absolutePath,
+                o.optDouble("dur", 1.0).toFloat(), CATEGORY)
+        }.filter { File(it.file).exists() }
+    } catch (e: Exception) { emptyList() }
+
+    private fun save(ctx: Context, items: List<Sfx>) {
+        val arr = JSONArray()
+        items.forEach { arr.put(JSONObject().put("id", it.id).put("label", it.label).put("dur", it.seconds.toDouble())) }
+        index(ctx).writeText(arr.toString())
+    }
+
+    fun add(ctx: Context, label: String, samples: FloatArray): Sfx {
+        val id = "mimic_" + System.currentTimeMillis()
+        val f = File(dir(ctx), "$id.wav")
+        AudioDsp.writeWav(samples, f)
+        val s = Sfx(id, label, f.absolutePath, samples.size / AudioDsp.RATE.toFloat(), CATEGORY)
+        save(ctx, list(ctx) + s)
+        return s
+    }
+
+    fun rename(ctx: Context, s: Sfx, label: String) = save(ctx, list(ctx).map { if (it.id == s.id) it.copy(label = label) else it })
+
+    fun delete(ctx: Context, s: Sfx) {
+        File(s.file).delete()
+        save(ctx, list(ctx).filter { it.id != s.id })
+    }
+}
 data class SfxCategory(val key: String, val title: String, val icon: String, val desc: String, val sounds: List<Sfx>)
 
 /** The medieval sound library bundled in assets/sfx (all CC0). */
@@ -44,7 +90,7 @@ object SfxLibrary {
         val words = tag.lowercase().split(Regex("[^a-z0-9]+")).filter { it.length > 1 }
             .map { it.removeSuffix("s").ifEmpty { it } }
         if (words.isEmpty()) return null
-        val cats = categories(context)
+        val cats = listOf(SfxCategory(MimicStore.CATEGORY, "My Mimicry", "🦜", "", MimicStore.list(context))) + categories(context)
         val exact = cats.flatMap { it.sounds }.filter { s -> s.label.lowercase().removeSuffix("s").trim() == tag.lowercase().removeSuffix("s").trim() }
         if (exact.isNotEmpty()) return exact.random()
         val byName = cats.flatMap { it.sounds }.filter { s -> val l = s.label.lowercase(); words.all { l.contains(it) } }
@@ -99,7 +145,7 @@ class SfxPlayer(private val context: Context) {
     /** Decodes short sounds ahead of time (e.g. the category on screen) so the first tap is instant. */
     fun preload(sounds: List<Sfx>) {
         sounds.filter { usesPool(it, false) && it.id !in loaded }.forEach { s ->
-            try { context.assets.openFd(s.file).use { fd -> loaded[s.id] = pool.load(fd, 1) } } catch (e: Exception) {}
+            try { loaded[s.id] = load(s) } catch (e: Exception) {}
         }
     }
 
@@ -108,14 +154,18 @@ class SfxPlayer(private val context: Context) {
         if (isPlaying(s.id)) { stop(s.id); return }
         if (poolStreams.size + players.size >= 10) (players.keys.firstOrNull() ?: poolStreams.keys.firstOrNull())?.let { stop(it) }
         if (usesPool(s, loop)) {
-            val sample = loaded[s.id] ?: try {
-                context.assets.openFd(s.file).use { fd -> pool.load(fd, 1) }.also { loaded[s.id] = it }
-            } catch (e: Exception) { return }
+            val sample = loaded[s.id] ?: try { load(s).also { loaded[s.id] = it } } catch (e: Exception) { return }
             if (sample in ready) startPool(s, sample) else pendingPlay[sample] = s
         } else {
             startPlayer(s, loop)
         }
     }
+
+    private fun load(s: Sfx): Int =
+        if (s.isUserFile) pool.load(s.file, 1) else context.assets.openFd(s.file).use { fd -> pool.load(fd, 1) }
+
+    /** Forget a cached sound (after the user deletes or re-records it). */
+    fun forget(id: String) { stop(id); loaded.remove(id)?.let { pool.unload(it); ready.remove(it) } }
 
     private fun startPool(s: Sfx, sample: Int) {
         val stream = pool.play(sample, volume, volume, 1, 0, 1f)
@@ -129,14 +179,13 @@ class SfxPlayer(private val context: Context) {
 
     private fun startPlayer(s: Sfx, loop: Boolean) {
         val mp = try {
-            context.assets.openFd(s.file).use { fd ->
-                MediaPlayer().apply {
-                    setAudioAttributes(attrs)
-                    setDataSource(fd.fileDescriptor, fd.startOffset, fd.length)
-                    isLooping = loop
-                    setVolume(volume, volume)
-                    prepare()
-                }
+            MediaPlayer().apply {
+                setAudioAttributes(attrs)
+                if (s.isUserFile) setDataSource(s.file)
+                else context.assets.openFd(s.file).use { fd -> setDataSource(fd.fileDescriptor, fd.startOffset, fd.length) }
+                isLooping = loop
+                setVolume(volume, volume)
+                prepare()
             }
         } catch (e: Exception) { null } ?: return
         mp.setOnCompletionListener { done ->

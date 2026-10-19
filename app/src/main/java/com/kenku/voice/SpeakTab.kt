@@ -36,6 +36,8 @@ class SpeakTab(private val act: MainActivity) {
     private lateinit var status: TextView
     private lateinit var castInfo: TextView
     private lateinit var progress: ProgressBar
+    private lateinit var quickWrap: LinearLayout
+    private lateinit var quickRow: LinearLayout
 
     @Volatile private var busy = false
     @Volatile private var streaming = false
@@ -129,6 +131,13 @@ class SpeakTab(private val act: MainActivity) {
         header.addView(progress, LinearLayout.LayoutParams(-1, ui.dp(6)).apply { topMargin = ui.dp(4) })
         root.addView(header)
 
+        // Quick lines: pinned lines as big one-tap buttons, always in reach during combat.
+        quickWrap = ui.column().apply { setPadding(ui.dp(16), 0, ui.dp(16), ui.dp(4)); visibility = View.GONE }
+        quickWrap.addView(ui.body("⚡ Quick lines (pin a line to add it here)", 12f, R.color.brass).apply { setPadding(0, 0, 0, ui.dp(4)) })
+        quickRow = ui.row()
+        quickWrap.addView(HorizontalScrollView(act).apply { isHorizontalScrollBarEnabled = false; addView(quickRow) })
+        root.addView(quickWrap)
+
         list = ui.column().apply { setPadding(ui.dp(16), ui.dp(6), ui.dp(16), ui.dp(16)) }
         root.addView(ScrollView(act).apply { addView(list); isFillViewport = true }, LinearLayout.LayoutParams(-1, 0, 1f))
 
@@ -173,7 +182,20 @@ class SpeakTab(private val act: MainActivity) {
         if (!isBusy) progress.visibility = View.GONE
     }
 
+    private fun renderQuick() {
+        quickRow.removeAllViews()
+        val pinned = lines.filter { it.starred }
+        quickWrap.visibility = if (pinned.isEmpty()) View.GONE else View.VISIBLE
+        pinned.forEach { l ->
+            val label = if (l.text.length > 28) l.text.take(26).trimEnd() + "…" else l.text
+            quickRow.addView(ui.button("▶ $label", Ui.Kind.NORMAL) { play(l) }.apply {
+                minHeight = ui.dp(52); textSize = 15f; contentDescription = "Play ${l.text}"
+            }, ui.wrap())
+        }
+    }
+
     private fun renderList() {
+        renderQuick()
         list.removeAllViews()
         if (lines.isEmpty()) {
             list.addView(ui.body("Your lines will show up here.\n\nTry: You owe us gold. The tavern keeper said so.", 15f).apply {
@@ -314,6 +336,16 @@ class SpeakTab(private val act: MainActivity) {
             .show()
     }
 
+    fun insert(raw: String) {
+        val t = input.text ?: return
+        val at = input.selectionStart.coerceIn(0, t.length)
+        val before = if (at > 0 && !t[at - 1].isWhitespace()) " " else ""
+        val ins = "$before$raw "
+        t.insert(at, ins)
+        input.setSelection((at + ins.length).coerceAtMost(input.text.length))
+        input.requestFocus()
+    }
+
     private fun insertTag(tag: String) {
         val t = input.text ?: return
         val at = input.selectionStart.coerceIn(0, t.length)
@@ -339,7 +371,11 @@ class SpeakTab(private val act: MainActivity) {
         val appCtx = act.applicationContext
         val opts = Performer.Options(speakers(), activeStyles(), smooth, wild) { tag ->
             SfxLibrary.find(appCtx, tag)?.let { fx ->
-                try { AudioDsp.matchLoudness(AudioDsp.trim(AudioImport.decodeAsset(appCtx, fx.file, 12), 0.004f), 0.07f) to fx.label }
+                try {
+                    val raw = if (fx.isUserFile) AudioDsp.readWav(java.io.File(fx.file))?.let { (x, r) -> AudioDsp.resample(x, r) } ?: throw IllegalStateException("unreadable")
+                    else AudioImport.decodeAsset(appCtx, fx.file, 12)
+                    AudioDsp.matchLoudness(AudioDsp.trim(raw, 0.004f), 0.07f) to fx.label
+                }
                 catch (e: Exception) { null }
             }
         }
