@@ -15,7 +15,12 @@ jobs:
           set +e
           exec > probe-out.txt 2>&1
           python3 -m pip install --quiet sherpa-onnx==1.13.8 numpy
-          python3 tools/probe2.py
+          echo "== pocket test"
+          curl -sL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-pocket-tts-int8-2026-01-26.tar.bz2 | tar xjf -
+          curl -sL https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-int8-multi-lang-v1_0.tar.bz2 | tar xjf - && mv kokoro-int8-multi-lang-v1_0 kok
+          nproc
+          python3 tools/pocket_test.py
+          cat sherpa-onnx-pocket-tts-int8-*/README.md 2>/dev/null | head -40
           echo "== sfx crawl"
           python3 tools/sfx_crawl.py https://opengameart.org/content/50-rpg-sound-effects https://opengameart.org/content/rpg-sound-pack https://opengameart.org/content/medieval-smith-pack https://opengameart.org/content/80-cc0-creature-sfx https://opengameart.org/content/100-cc0-sfx https://opengameart.org/content/100-cc0-sfx-2
           echo "== sfx files"

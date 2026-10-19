@@ -22,9 +22,13 @@ for p in sorted(pages):
         h=get(p)
     except Exception as e:
         print("page fail",p,e); continue
-    lic=re.findall(r'license-name">\s*([^<]+)<', h)
-    lics=[l.strip() for l in lic]
-    if not lics or any(l!='CC0' for l in lics):
+    i=h.find('field-name-field-art-licenses')
+    region=h[i:i+3000] if i>=0 else ''
+    j=region.find('field-name-',40)
+    if j>0: region=region[:j]
+    lics=sorted(set(re.findall(r'(CC0|CC-BY-SA \d\.\d|CC-BY \d\.\d|GPL \d\.\d|LGPL [^<"]*|OGA-BY \d\.\d)', region)))
+    if p.endswith('50-rpg-sound-effects'): print("REGION SAMPLE", region[:800].replace('\n',' '))
+    if lics!=['CC0']:
         print("skip",p,lics); continue
     title=re.search(r'<title>([^<|]+)', h); title=title.group(1).strip() if title else p
     files=re.findall(r'href="(https://opengameart.org/sites/default/files/[^"]+\.(?:zip|ogg|wav|mp3|flac))"', h)
