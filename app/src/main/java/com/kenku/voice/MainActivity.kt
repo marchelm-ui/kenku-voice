@@ -31,8 +31,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var performer: Performer
     lateinit var clones: CloneStore
     lateinit var sfx: SfxPlayer
-    /** Every voice-model call runs on this one thread. */
-    val engineThread = Executors.newSingleThreadExecutor()
+    /** Every voice-model call runs on this one thread (shared across screen restarts). */
+    val engineThread get() = VoiceEngine.thread
     /** Disk and decoding work that must not block the screen or the voices. */
     val ioThread = Executors.newSingleThreadExecutor()
     val main = Handler(Looper.getMainLooper())
@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ui = Ui(this)
-        engine = VoiceEngine(applicationContext)
+        engine = VoiceEngine.get(this)
         performer = Performer(engine)
         clones = CloneStore(applicationContext)
         sfx = SfxPlayer(applicationContext)
@@ -169,9 +169,8 @@ class MainActivity : AppCompatActivity() {
         sfx.stopAll()
         performer.cancel()
         clonesTab.onDestroy()
-        // Free the models on the same thread that uses them, after any line in progress.
-        engineThread.execute { engine.release() }
-        engineThread.shutdown()
+        // The voice models stay loaded for the next time the screen opens; Android frees them
+        // with the app's process when it's no longer needed.
         ioThread.shutdown()
         super.onDestroy()
     }

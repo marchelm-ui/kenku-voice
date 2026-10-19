@@ -115,11 +115,14 @@ class VoiceEngine(private val context: Context) {
         kokoro = OfflineTts(assetManager = context.assets, config = config)
     }
 
-    /** Blocking. Loads the cloning model the first time a clone is used. */
+    /**
+     * Blocking. Loads the cloning model the first time a clone is used. Its files are copied
+     * from the app package to private storage once, so the engine reads them as plain files.
+     */
     fun loadPocket(): Boolean {
         if (pocket != null) return true
         if (pocketFailed) return false
-        val d = POCKET_DIR
+        val d = try { preparePocketFiles() } catch (e: Throwable) { pocketFailed = true; return false }
         val config = OfflineTtsConfig(
             model = OfflineTtsModelConfig(
                 pocket = OfflineTtsPocketModelConfig(
@@ -137,10 +140,28 @@ class VoiceEngine(private val context: Context) {
             ),
         )
         return try {
-            pocket = OfflineTts(assetManager = context.assets, config = config); true
+            pocket = OfflineTts(assetManager = null, config = config); true
         } catch (e: Throwable) {
             pocketFailed = true; false
         }
+    }
+
+    private val pocketFiles = listOf("lm_flow.int8.onnx", "lm_main.int8.onnx", "encoder.onnx", "decoder.int8.onnx",
+        "text_conditioner.onnx", "vocab.json", "token_scores.json")
+
+    private fun preparePocketFiles(): String {
+        val dir = File(context.filesDir, POCKET_DIR)
+        val marker = File(dir, ".copied-$POCKET_VERSION")
+        if (!marker.exists()) {
+            dir.deleteRecursively(); dir.mkdirs()
+            for (f in pocketFiles) {
+                val tmp = File(dir, "$f.tmp")
+                context.assets.open("$POCKET_DIR/$f").use { input -> FileOutputStream(tmp).use { input.copyTo(it, 1 shl 20) } }
+                if (!tmp.renameTo(File(dir, f))) throw IllegalStateException("Couldn't store $f")
+            }
+            marker.writeText("ok")
+        }
+        return dir.absolutePath
     }
 
     private fun threads(): Int = Runtime.getRuntime().availableProcessors().let { if (it >= 8) 4 else 2 }
@@ -207,5 +228,19 @@ class VoiceEngine(private val context: Context) {
         const val KOKORO_DIR = "kokoro"
         const val POCKET_DIR = "pocket"
         const val DATA_VERSION = "v1_0-fp32-1"
+        const val POCKET_VERSION = "int8-2026-01-26"
+
+        @Volatile private var shared: VoiceEngine? = null
+
+        /**
+         * One engine for the whole app process, so rotating the phone or switching between
+         * light and dark mode never reloads the 300 MB voice model.
+         */
+        fun get(context: Context): VoiceEngine = shared ?: synchronized(this) {
+            shared ?: VoiceEngine(context.applicationContext).also { shared = it }
+        }
+
+        /** The single thread every model call runs on, shared like the engine. */
+        val thread: java.util.concurrent.ExecutorService by lazy { java.util.concurrent.Executors.newSingleThreadExecutor() }
     }
 }
