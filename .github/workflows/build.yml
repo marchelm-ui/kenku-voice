@@ -31,7 +31,7 @@ jobs:
       - name: Test voices, cloning and speed on ARM
         run: |
           set -o pipefail
-          python3 -m pip install --quiet --break-system-packages sherpa-onnx==1.13.8 numpy 2>/dev/null || python3 -m pip install --quiet sherpa-onnx==1.13.8 numpy
+          python3 -m pip install --quiet --break-system-packages sherpa-onnx==1.13.8 numpy scipy 2>/dev/null || python3 -m pip install --quiet sherpa-onnx==1.13.8 numpy scipy
           python3 tools/voice_test.py kokoro-multi-lang-v1_0 sherpa-onnx-pocket-tts-int8-2026-01-26 kenku-sample.wav 2>&1 | tee voice-test-log.txt
       - name: Save the voice test log if it failed
         if: failure()

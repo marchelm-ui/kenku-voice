@@ -11,6 +11,8 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.HorizontalScrollView
+import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
@@ -33,6 +35,7 @@ class SpeakTab(private val act: MainActivity) {
     private lateinit var stop: Button
     private lateinit var status: TextView
     private lateinit var castInfo: TextView
+    private lateinit var progress: ProgressBar
 
     @Volatile private var busy = false
     @Volatile private var streaming = false
@@ -102,6 +105,11 @@ class SpeakTab(private val act: MainActivity) {
         val root = ui.column()
         val header = ui.column().apply { setPadding(ui.dp(16), ui.dp(14), ui.dp(16), ui.dp(6)) }
         val titleRow = ui.row()
+        titleRow.addView(ImageView(act).apply {
+            setImageResource(R.drawable.ic_launcher_foreground)
+            background = ui.rounded(ui.c(R.color.icon_bg), null, 12)
+            contentDescription = null
+        }, LinearLayout.LayoutParams(ui.dp(44), ui.dp(44)).apply { rightMargin = ui.dp(10) })
         titleRow.addView(ui.title("Kenku Voice"), ui.weight())
         titleRow.addView(ui.button("Voices") { openVoices() }.apply { textSize = 14f })
         header.addView(titleRow)
@@ -114,6 +122,11 @@ class SpeakTab(private val act: MainActivity) {
         stop = ui.button("■ Stop", Ui.Kind.DANGER) { stopSpeaking() }.apply { visibility = View.GONE; minHeight = ui.dp(40); minimumHeight = ui.dp(40) }
         statusRow.addView(stop)
         header.addView(statusRow)
+        progress = ProgressBar(act, null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100; progress = 0; visibility = View.GONE
+            progressTintList = android.content.res.ColorStateList.valueOf(ui.c(R.color.accent))
+        }
+        header.addView(progress, LinearLayout.LayoutParams(-1, ui.dp(6)).apply { topMargin = ui.dp(4) })
         root.addView(header)
 
         list = ui.column().apply { setPadding(ui.dp(16), ui.dp(6), ui.dp(16), ui.dp(16)) }
@@ -145,7 +158,7 @@ class SpeakTab(private val act: MainActivity) {
         bar.addView(ui.button("+ Sound") { pickSound() }.apply { textSize = 13f; minHeight = ui.dp(52); contentDescription = "Insert a sound effect" },
             LinearLayout.LayoutParams(-2, -2).apply { rightMargin = ui.dp(8) })
         bar.addView(input, ui.weight())
-        say = ui.button("Say", Ui.Kind.PRIMARY) { submit() }.apply { minWidth = ui.dp(76); minHeight = ui.dp(52) }
+        say = ui.button("Say", Ui.Kind.PRIMARY) { ui.tick(input); submit() }.apply { minWidth = ui.dp(76); minHeight = ui.dp(52) }
         bar.addView(say, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = ui.dp(8) })
         root.addView(bar)
         return root
@@ -157,6 +170,7 @@ class SpeakTab(private val act: MainActivity) {
         say.alpha = if (isBusy) 0.5f else 1f
         status.text = message
         status.visibility = if (message.isBlank()) View.GONE else View.VISIBLE
+        if (!isBusy) progress.visibility = View.GONE
     }
 
     private fun renderList() {
@@ -199,6 +213,7 @@ class SpeakTab(private val act: MainActivity) {
         var mode = mixMode
         var smoothOn = smooth
         var wildOn = wild
+        var awakeOn = act.prefs.getBoolean("awake", true)
 
         val body = ui.column().apply { setPadding(ui.dp(20), ui.dp(8), ui.dp(20), ui.dp(8)) }
         fun heading(t: String, sub: String) {
@@ -231,6 +246,7 @@ class SpeakTab(private val act: MainActivity) {
         body.addView(group)
         row("Smooth blending", "Softer handovers between voices", smoothOn, { smoothOn = it }, null)
         row("Wild styles", "Much bigger pitch and speed changes. Fun, but some voices get hard to understand.", wildOn, { wildOn = it }, null)
+        row("Keep screen awake", "Stops the phone from locking while the app is open, handy at the table", awakeOn, { awakeOn = it }, null)
 
         val sample = "Squawk! You owe us gold, friend."
         heading("Accents", "Untick any you don't want. Hear plays a random voice from that accent.")
@@ -256,7 +272,8 @@ class SpeakTab(private val act: MainActivity) {
             .setView(ScrollView(act).apply { addView(body) })
             .setPositiveButton("Done") { _, _ ->
                 setOff("off_accents", offA); setOff("off_styles", offS)
-                act.prefs.edit().putString("mix", mode).putBoolean("smooth", smoothOn).putBoolean("wild", wildOn).apply()
+                act.prefs.edit().putString("mix", mode).putBoolean("smooth", smoothOn).putBoolean("wild", wildOn).putBoolean("awake", awakeOn).apply()
+                act.applyKeepAwake()
                 updateCastInfo()
             }
             .setNegativeButton("Cancel", null)
@@ -329,13 +346,16 @@ class SpeakTab(private val act: MainActivity) {
         act.stopPlayback()
         setBusy(true, "Stealing voices…")
         stop.visibility = View.VISIBLE
+        progress.progress = 0
+        progress.visibility = View.VISIBLE
         streaming = true
+        act.duck(true)
         act.engineThread.execute {
             try {
                 val res = act.performer.perform(line.text, opts, fileFor(line),
-                    onProgress = { done, total -> act.main.post { if (busy) status.text = "Stealing voices… $done of $total" } },
+                    onProgress = { done, total -> act.main.post { if (busy) { status.text = "Stealing voices… $done of $total"; progress.progress = if (total > 0) done * 100 / total else 0 } } },
                     onStarted = { act.main.post { if (busy) status.text = "Speaking…" } },
-                    onPlaybackDone = { act.main.post { streaming = false; if (!busy) stop.visibility = View.GONE } })
+                    onPlaybackDone = { act.main.post { streaming = false; act.duck(false); if (!busy) stop.visibility = View.GONE } })
                 line.voices = res.parts.joinToString("  ·  ")
                 act.main.post {
                     if (!act.alive) return@post
@@ -370,7 +390,8 @@ class SpeakTab(private val act: MainActivity) {
         if (!f.exists()) { remake(line); return }
         act.performer.cancel()
         stop.visibility = View.VISIBLE
-        act.playFile(f) { stop.visibility = View.GONE }
+        act.playFile(f) { stop.visibility = View.GONE; act.duck(false) }
+        act.duck(true)
     }
 
     private fun share(line: Line) {

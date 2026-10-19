@@ -2,7 +2,11 @@ package com.kenku.voice
 
 import android.content.Context
 import android.graphics.Typeface
+import android.content.res.ColorStateList
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.RippleDrawable
+import android.view.HapticFeedbackConstants
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -21,6 +25,15 @@ class Ui(val ctx: Context) {
         stroke?.let { setStroke(dp(1), it) }
     }
 
+    /** Wraps a background so it shows the standard touch ripple when tapped. */
+    fun ripple(content: Drawable?, radius: Int = 12): RippleDrawable {
+        val mask = rounded(0xFFFFFFFF.toInt(), null, radius)
+        return RippleDrawable(ColorStateList.valueOf(c(R.color.ripple)), content, mask)
+    }
+
+    /** A light tap feel, used on the main actions. */
+    fun tick(v: View) { v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY) }
+
     enum class Kind { PRIMARY, NORMAL, DANGER, QUIET }
 
     fun button(text: String, kind: Kind = Kind.NORMAL, onClick: () -> Unit) = Button(ctx).apply {
@@ -32,10 +45,10 @@ class Ui(val ctx: Context) {
         setPadding(dp(14), 0, dp(14), 0)
         stateListAnimator = null
         when (kind) {
-            Kind.PRIMARY -> { setTextColor(c(R.color.accent_ink)); background = rounded(c(R.color.accent)) }
-            Kind.DANGER -> { setTextColor(c(R.color.danger)); background = rounded(c(R.color.surface), c(R.color.danger)) }
-            Kind.QUIET -> { setTextColor(c(R.color.accent)); background = rounded(c(R.color.bg), null) }
-            Kind.NORMAL -> { setTextColor(c(R.color.ink)); background = rounded(c(R.color.surface), c(R.color.line)) }
+            Kind.PRIMARY -> { setTextColor(c(R.color.accent_ink)); background = ripple(rounded(c(R.color.accent))) }
+            Kind.DANGER -> { setTextColor(c(R.color.danger)); background = ripple(rounded(c(R.color.surface), c(R.color.danger))) }
+            Kind.QUIET -> { setTextColor(c(R.color.accent)); background = ripple(rounded(c(R.color.bg), null)) }
+            Kind.NORMAL -> { setTextColor(c(R.color.ink)); background = ripple(rounded(c(R.color.surface), c(R.color.line))) }
         }
         setOnClickListener { onClick() }
     }

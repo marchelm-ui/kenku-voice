@@ -5,6 +5,9 @@ import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.exp
+import kotlin.math.pow
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -15,20 +18,51 @@ import kotlin.math.tanh
 object AudioDsp {
     const val RATE = 24000
 
-    /** Changes pitch (and length) by resampling; callers compensate speed beforehand. */
+    /**
+     * Changes pitch (and length) by resampling; callers compensate speed beforehand.
+     * Uses a band-limited (windowed-sinc) resampler: plain linear interpolation dulls
+     * consonants like s, t and k by up to 3 dB and adds harsh aliasing when pitching up.
+     */
     fun pitchShift(src: FloatArray, factor: Float): FloatArray {
         if (src.isEmpty() || abs(factor - 1f) < 0.005f) return src
         val n = (src.size / factor).toInt().coerceAtLeast(1)
-        return FloatArray(n) { i ->
-            val x = i * factor
-            val a = x.toInt().coerceAtMost(src.size - 1)
-            val b = (a + 1).coerceAtMost(src.size - 1)
-            val t = x - a
-            src[a] * (1 - t) + src[b] * t
+        val cutoff = minOf(1.0, 1.0 / factor) * 0.92
+        val half = ceil(10.0 / cutoff).toInt()
+        val os = 256
+        val size = half * os
+        val table = FloatArray(size + 2) { j ->
+            val t = j.toDouble() / os
+            if (j > size) 0f else {
+                val x = cutoff * t * Math.PI
+                val sinc = if (x == 0.0) 1.0 else sin(x) / x
+                (sinc * (0.5 + 0.5 * cos(Math.PI * t / half))).toFloat()
+            }
         }
+        val out = FloatArray(n)
+        val last = src.size - 1
+        for (i in 0 until n) {
+            val x = i * factor.toDouble()
+            val c = x.toInt()
+            var sum = 0.0
+            var wsum = 0.0
+            var k = maxOf(0, c - half + 1)
+            val end = minOf(last, c + half)
+            while (k <= end) {
+                val t = abs(x - k) * os
+                val j = t.toInt()
+                if (j < size) {
+                    val w = table[j] + (table[j + 1] - table[j]) * (t - j).toFloat()
+                    sum += src[k] * w
+                    wsum += w
+                }
+                k++
+            }
+            out[i] = if (wsum != 0.0) (sum / wsum).toFloat() else 0f
+        }
+        return out
     }
 
-    /** Linear resample to [RATE]. */
+    /** Band-limited resample to [RATE]. */
     fun resample(src: FloatArray, fromRate: Int): FloatArray =
         if (fromRate == RATE || fromRate <= 0) src else pitchShift(src, fromRate.toFloat() / RATE)
 
@@ -80,6 +114,54 @@ object AudioDsp {
     }
 
     private fun softClip(x: Float): Float = if (abs(x) < 0.85f) x else (tanh(x.toDouble() * 1.1) / tanh(1.1)).toFloat().coerceIn(-0.98f, 0.98f)
+
+    /** One second-order filter section (RBJ audio-EQ cookbook). */
+    private fun biquad(x: FloatArray, b0: Double, b1: Double, b2: Double, a1: Double, a2: Double): FloatArray {
+        var x1 = 0.0; var x2 = 0.0; var y1 = 0.0; var y2 = 0.0
+        return FloatArray(x.size) { i ->
+            val v = x[i].toDouble()
+            val o = b0 * v + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
+            x2 = x1; x1 = v; y2 = y1; y1 = o
+            o.toFloat()
+        }
+    }
+
+    private fun highPass(x: FloatArray, fc: Double, q: Double = 0.707): FloatArray {
+        val w = 2 * Math.PI * fc / RATE; val al = sin(w) / (2 * q); val c = cos(w); val a0 = 1 + al
+        return biquad(x, (1 + c) / 2 / a0, -(1 + c) / a0, (1 + c) / 2 / a0, -2 * c / a0, (1 - al) / a0)
+    }
+
+    private fun peak(x: FloatArray, fc: Double, q: Double, db: Double): FloatArray {
+        val a = 10.0.pow(db / 40); val w = 2 * Math.PI * fc / RATE; val al = sin(w) / (2 * q); val c = cos(w); val a0 = 1 + al / a
+        return biquad(x, (1 + al * a) / a0, -2 * c / a0, (1 - al * a) / a0, -2 * c / a0, (1 - al / a) / a0)
+    }
+
+    /** Gentle peak compressor: evens out loud syllables so quiet words stay audible. */
+    private fun compress(x: FloatArray, threshold: Float = 0.25f, ratio: Float = 3f): FloatArray {
+        val ga = exp(-1.0 / (0.003 * RATE)).toFloat()
+        val gr = exp(-1.0 / (0.06 * RATE)).toFloat()
+        var env = 0f
+        return FloatArray(x.size) { i ->
+            val a = abs(x[i])
+            env = if (a > env) ga * env + (1 - ga) * a else gr * env + (1 - gr) * a
+            val g = if (env > threshold) threshold * (env / threshold).pow(1f / ratio) / env else 1f
+            x[i] * g
+        }
+    }
+
+    /**
+     * Clarity chain for every spoken snippet: removes low rumble, adds a touch of
+     * presence where consonants live (~3 kHz), evens out loudness and brings each
+     * voice to the same comfortable, table-friendly level.
+     */
+    fun polish(src: FloatArray, target: Float = 0.105f): FloatArray {
+        if (src.isEmpty()) return src
+        var x = highPass(src, 80.0)
+        x = peak(x, 3000.0, 0.9, 2.5)
+        x = matchLoudness(x, 0.09f)
+        x = compress(x)
+        return matchLoudness(x, target)
+    }
 
     /** Short fades at both ends to remove clicks. */
     fun fadeEdges(src: FloatArray, ms: Int = 6): FloatArray {

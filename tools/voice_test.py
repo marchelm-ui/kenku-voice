@@ -95,9 +95,37 @@ def trim(x, thr=0.012):
     return x[max(0, idx[0] - pad): min(len(x), idx[-1] + pad)]
 
 
-def match(x, target=0.085):
-    r = rms(x)
-    return np.clip(x * min(3.5, max(0.35, target / r)), -0.98, 0.98) if r > 1e-4 else x
+def vrms(x):
+    fr = sorted(float(np.sqrt(np.mean(x[i:i + 480] ** 2))) for i in range(0, len(x), 480) if len(x[i:i + 480]))
+    top = fr[len(fr) // 3:]
+    return float(np.mean(top)) if top else 0.0
+
+
+def norm(x, t):
+    r = vrms(x)
+    return x * min(3.5, max(0.35, t / r)) if r > 1e-4 else x
+
+
+def compress(x, thr=0.25, ratio=3.0):
+    ga = np.exp(-1 / (0.003 * RATE)); gr = np.exp(-1 / (0.06 * RATE)); env = 0.0
+    y = np.empty_like(x)
+    for i, v in enumerate(x):
+        a = abs(v)
+        env = ga * env + (1 - ga) * a if a > env else gr * env + (1 - gr) * a
+        y[i] = v * (thr * (env / thr) ** (1 / ratio) / env if env > thr else 1.0)
+    return y
+
+
+def match(x, target=0.105):
+    """Mirror of AudioDsp.polish: 80 Hz high-pass, +2.5 dB presence at 3 kHz, compression, level."""
+    from scipy.signal import lfilter
+    w = 2 * np.pi * 80 / RATE; al = np.sin(w) / (2 * 0.707); c = np.cos(w); a0 = 1 + al
+    x = lfilter([(1 + c) / 2 / a0, -(1 + c) / a0, (1 + c) / 2 / a0], [1, -2 * c / a0, (1 - al) / a0], x)
+    A = 10 ** (2.5 / 40); w = 2 * np.pi * 3000 / RATE; al = np.sin(w) / (2 * 0.9); c = np.cos(w); a0 = 1 + al / A
+    x = lfilter([(1 + al * A) / a0, -2 * c / a0, (1 - al * A) / a0], [1, -2 * c / a0, (1 - al / A) / a0], x)
+    x = compress(norm(x.astype(np.float32), 0.09))
+    x = norm(x, target)
+    return np.clip(x, -0.98, 0.98).astype(np.float32)
 
 
 t = time.time(); kt = kokoro(); print(f"kokoro load {time.time() - t:.1f}s, speakers {kt.num_speakers}")

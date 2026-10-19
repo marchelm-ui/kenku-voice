@@ -243,7 +243,7 @@ class VoiceEngine(private val context: Context) {
             }
         }
         val shaped = AudioDsp.pitchShift(AudioDsp.trim(raw), pitch)
-        return AudioDsp.fadeEdges(AudioDsp.matchLoudness(shaped))
+        return AudioDsp.fadeEdges(AudioDsp.polish(shaped))
     }
 
     fun release() {

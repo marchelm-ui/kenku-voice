@@ -106,7 +106,7 @@ class SoundsTab(private val act: MainActivity) {
     private fun highlightChip(key: String?) {
         chips.forEach { (k, chip) ->
             val on = k == key
-            chip.background = ui.rounded(ui.c(if (on) R.color.tab_on else R.color.surface), ui.c(if (on) R.color.accent else R.color.line), 14)
+            chip.background = ui.ripple(ui.rounded(ui.c(if (on) R.color.tab_on else R.color.surface), ui.c(if (on) R.color.accent else R.color.line), 14), 14)
             (chip.getChildAt(1) as TextView).setTextColor(ui.c(if (on) R.color.accent else R.color.ink))
         }
     }
@@ -118,12 +118,14 @@ class SoundsTab(private val act: MainActivity) {
             header.text = "⭐ Favorites"
             sub.text = if (favs.isEmpty()) "Tap the ☆ on any sound to keep it here for quick use." else "${favs.size} favorite sounds"
             fill(favs, showCategory = true)
+            act.sfx.preload(favs)
             return
         }
         val cat = categories.firstOrNull { it.key == key } ?: return
         header.text = "${cat.icon} ${cat.title}"
         sub.text = "${cat.desc} · ${cat.sounds.size} sounds · tap to play, tap again to stop"
         fill(cat.sounds, showCategory = false)
+        act.sfx.preload(cat.sounds)
     }
 
     private fun showSearch(q: String) {
@@ -160,7 +162,7 @@ class SoundsTab(private val act: MainActivity) {
             minimumHeight = ui.dp(64)
             isClickable = true; isFocusable = true
             contentDescription = "Play ${s.label}"
-            setOnClickListener { act.sfx.toggle(s) }
+            setOnClickListener { v -> ui.tick(v); act.sfx.toggle(s) }
         }
         val texts = ui.column()
         texts.addView(ui.body((icon?.let { "$it " } ?: "") + s.label, 15f, R.color.ink).apply { setTypeface(typeface, Typeface.BOLD) })
@@ -185,7 +187,7 @@ class SoundsTab(private val act: MainActivity) {
     private fun refreshTiles() {
         tiles.forEach { (id, t) ->
             val on = act.sfx.isPlaying(id)
-            t.background = ui.rounded(ui.c(if (on) R.color.tab_on else R.color.surface), ui.c(if (on) R.color.accent else R.color.line), 12)
+            t.background = ui.ripple(ui.rounded(ui.c(if (on) R.color.tab_on else R.color.surface), ui.c(if (on) R.color.accent else R.color.line), 12))
         }
     }
 

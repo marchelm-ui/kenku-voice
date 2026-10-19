@@ -76,9 +76,11 @@ class MainActivity : AppCompatActivity() {
             content.addView(v, FrameLayout.LayoutParams(-1, -1)); tabViews.add(v)
         }
         root.addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
+        root.addView(View(this).apply { setBackgroundColor(ui.c(R.color.line)) }, LinearLayout.LayoutParams(-1, ui.dp(1)))
         root.addView(tabBar())
         setContentView(root)
         select(prefs.getInt("tab", 0).coerceIn(0, 2))
+        applyKeepAwake()
 
         engineThread.execute {
             val error = try { engine.load(); null } catch (e: Throwable) { e }
@@ -110,7 +112,7 @@ class MainActivity : AppCompatActivity() {
                 isClickable = true
                 isFocusable = true
                 contentDescription = "$label tab"
-                setOnClickListener { select(i) }
+                setOnClickListener { v -> ui.tick(v); select(i) }
             }
             b.addView(TextView(this).apply { text = icon; textSize = 24f; gravity = Gravity.CENTER })
             b.addView(TextView(this).apply { text = label; textSize = 14f; setTypeface(typeface, Typeface.BOLD); gravity = Gravity.CENTER })
@@ -126,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         tabViews.forEachIndexed { k, v -> v.visibility = if (k == i) View.VISIBLE else View.GONE }
         tabButtons.forEachIndexed { k, b ->
             val on = k == i
-            b.background = if (on) ui.rounded(ui.c(R.color.tab_on), ui.c(R.color.accent), 14) else null
+            b.background = ui.ripple(if (on) ui.rounded(ui.c(R.color.tab_on), ui.c(R.color.accent), 14) else null, 14)
             for (c in 0 until b.childCount) (b.getChildAt(c) as TextView).setTextColor(ui.c(if (on) R.color.accent else R.color.muted))
         }
         if (i == 0) speak.updateCastInfo()
@@ -156,18 +158,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun stopPlayback() { player?.let { try { it.stop() } catch (e: Exception) {}; it.release() }; player = null }
+    fun stopPlayback() { player?.let { try { it.stop() } catch (e: Exception) {}; it.release(); duck(false) }; player = null }
+
+    private val audio by lazy { getSystemService(AUDIO_SERVICE) as android.media.AudioManager }
+    private val focus by lazy {
+        android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+            .build()
+    }
+
+    /** While the kenku talks, music or other apps briefly lower their volume. */
+    fun duck(on: Boolean) {
+        try { if (on) audio.requestAudioFocus(focus) else audio.abandonAudioFocusRequest(focus) } catch (e: Exception) {}
+    }
+
+    /** Keeps the screen from sleeping mid-session (on by default; switch in Voices). */
+    fun applyKeepAwake() {
+        if (prefs.getBoolean("awake", true)) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
 
     fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
-    override fun onStop() {
-        super.onStop()
-        player?.let { try { if (it.isPlaying) it.pause() } catch (e: Exception) {} }
-    }
-
     override fun onDestroy() {
         stopPlayback()
-        sfx.stopAll()
+        sfx.release()
         performer.cancel()
         clonesTab.onDestroy()
         // The voice models stay loaded for the next time the screen opens; Android frees them
