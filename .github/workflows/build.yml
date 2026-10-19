@@ -104,6 +104,22 @@ jobs:
           set -o pipefail
           gradle :app:assembleRelease --no-daemon 2>&1 | tee build-log.txt
 
+      - name: Run Android lint (report only)
+        run: |
+          gradle :app:lintRelease --no-daemon --continue > lint-log.txt 2>&1 || true
+          ls app/build/reports/ 2>/dev/null || true
+          (grep -E "Error|Warning" -A0 app/build/reports/lint-results-release.txt 2>/dev/null | head -c 150000 || true) > lint-summary.txt
+          cp app/build/reports/lint-results-release.txt lint-full.txt 2>/dev/null || cp lint-log.txt lint-full.txt
+          git config user.name build-bot
+          git config user.email build-bot@users.noreply.github.com
+          git fetch -q origin lint-report 2>/dev/null || true
+          git checkout -q --orphan lint-report
+          git rm -rf -q --cached . > /dev/null
+          git add -f lint-full.txt
+          git commit -q -m "Lint report build ${{ github.run_number }}"
+          git push -q -f origin lint-report
+          git checkout -q -f ${{ github.sha }}
+
       - name: Name the APK
         run: cp app/build/outputs/apk/release/app-release.apk KenkuVoice.apk
 
