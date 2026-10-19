@@ -134,7 +134,7 @@ jobs:
         with:
           tag_name: build-${{ github.run_number }}
           name: Kenku Voice build ${{ github.run_number }}
-          body: Download KenkuVoice.apk below on your Android phone and open it to install. Speak, Clones and Sounds tabs: 54 Kokoro voices, voice cloning and 460+ medieval sounds. Large download (about 500 MB).
+          body: "Download KenkuVoice.apk below on your Android phone and open it to install. Speak, Clones and Sounds tabs with 54 Kokoro voices, voice cloning and 460+ medieval sounds. Large download (about 500 MB)."
           files: |
             KenkuVoice.apk
             kenku-sample.wav
