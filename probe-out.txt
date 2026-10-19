@@ -1,548 +1,192 @@
-== maven metadata
-<html>
-<head><title>404 Not Found</title></head>
-<body bgcolor="white">
-<center><h1>404 Not Found</h1></center>
-<hr><center>nginx</center>
-</body>
-</html>
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-
-
-
-== latest release
-v1.13.8 2026-09-10T14:00:23Z
-sherpa-onnx-1.13.8-rknn.aar 26598297
-sherpa-onnx-1.13.8.aar 50129134
-sherpa-onnx-static-link-onnxruntime-1.13.8.aar 38691998
-sherpa-onnx-v1.13.8-android-aarch64-termux-shared.tar.bz2 16451109
-sherpa-onnx-v1.13.8-android-aarch64-termux-static.tar.bz2 156475962
-sherpa-onnx-v1.13.8-android-armeabi-v7a-termux-shared.tar.bz2 16066031
-sherpa-onnx-v1.13.8-android-armeabi-v7a-termux-static.tar.bz2 146045328
-sherpa-onnx-v1.13.8-android-rknn.tar.bz2 24946383
-sherpa-onnx-v1.13.8-android-static-link-onnxruntime.tar.bz2 35101751
-sherpa-onnx-v1.13.8-android-x86-termux-shared.tar.bz2 17894832
-sherpa-onnx-v1.13.8-android-x86-termux-static.tar.bz2 172967915
-sherpa-onnx-v1.13.8-android-x86_64-termux-shared.tar.bz2 17929459
-sherpa-onnx-v1.13.8-android-x86_64-termux-static.tar.bz2 170740613
-sherpa-onnx-v1.13.8-android.tar.bz2 46093321
-sherpa-onnx-v1.13.8-linux-aarch64-jni.tar.bz2 12626110
-sherpa-onnx-v1.13.8-linux-x64-jni.tar.bz2 27950179
-sherpa-onnx-v1.13.8-osx-arm64-jni.tar.bz2 22095075
-sherpa-onnx-v1.13.8-osx-x86_64-jni.tar.bz2 24106314
-sherpa-onnx-v1.13.8-win-arm64-jni.tar.bz2 7515032
-sherpa-onnx-v1.13.8-win-x64-jni.tar.bz2 7894669
-== maven release=
-<html>
-<head><title>404 Not Found</title></head>
-<body bgcolor="white">
-<center><h1>404 Not Found</h1></center>
-<hr><center>nginx</center>
-</body>
-</html>
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-
-
-
-<html>
-<head><title>404 Not Found</title></head>
-<body bgcolor="white">
-<center><h1>404 Not Found</h1></center>
-<hr><center>nginx</center>
-</body>
-</html>
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-<!-- a padding to disable MSIE and Chrome friendly error page -->
-
-
-
--rw-r--r-- 1 runner runner 554 Oct 19 01:38 s.aar
-  End-of-central-directory signature not found.  Either this file is not
-  a zipfile, or it constitutes one disk of a multi-part archive.  In the
-  latter case the central directory and zipfile comment will be found on
-  the last disk(s) of this archive.
-unzip:  cannot find zipfile directory in one of s.aar or
-        s.aar.zip, and cannot find s.aar.ZIP, period.
+-rw-r--r-- 1 runner runner 50129134 Oct 19 01:39 s.aar
 Archive:  s.aar
-[s.aar]
-  End-of-central-directory signature not found.  Either this file is not
-  a zipfile, or it constitutes one disk of a multi-part archive.  In the
-  latter case the central directory and zipfile comment will be found on
-  the last disk(s) of this archive.
-unzip:  cannot find zipfile directory in one of s.aar or
-        s.aar.zip, and cannot find s.aar.ZIP, period.
-== Tts.kt
-// Copyright (c)  2023  Xiaomi Corporation
-package com.k2fsa.sherpa.onnx
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+        0  1980-02-01 00:00   R.txt
+      203  1980-02-01 00:00   AndroidManifest.xml
+   238706  1980-02-01 00:00   classes.jar
+        0  1980-02-01 00:00   proguard.txt
+      156  1980-02-01 00:00   META-INF/com/android/build/gradle/aar-metadata.properties
+        0  1980-02-01 00:00   jni/
+        0  1980-02-01 00:00   jni/arm64-v8a/
+ 22249560  1980-02-01 00:00   jni/arm64-v8a/libonnxruntime.so
+  4465168  1980-02-01 00:00   jni/arm64-v8a/libsherpa-onnx-c-api.so
+   440688  1980-02-01 00:00   jni/arm64-v8a/libsherpa-onnx-cxx-api.so
+  4771760  1980-02-01 00:00   jni/arm64-v8a/libsherpa-onnx-jni.so
+        0  1980-02-01 00:00   jni/armeabi-v7a/
+ 15359592  1980-02-01 00:00   jni/armeabi-v7a/libonnxruntime.so
+  3202700  1980-02-01 00:00   jni/armeabi-v7a/libsherpa-onnx-c-api.so
+   282008  1980-02-01 00:00   jni/armeabi-v7a/libsherpa-onnx-cxx-api.so
+  3428780  1980-02-01 00:00   jni/armeabi-v7a/libsherpa-onnx-jni.so
+        0  1980-02-01 00:00   jni/x86/
+ 26491148  1980-02-01 00:00   jni/x86/libonnxruntime.so
+  5051192  1980-02-01 00:00   jni/x86/libsherpa-onnx-c-api.so
+   392768  1980-02-01 00:00   jni/x86/libsherpa-onnx-cxx-api.so
+  5358928  1980-02-01 00:00   jni/x86/libsherpa-onnx-jni.so
+        0  1980-02-01 00:00   jni/x86_64/
+ 25581120  1980-02-01 00:00   jni/x86_64/libonnxruntime.so
+  4927096  1980-02-01 00:00   jni/x86_64/libsherpa-onnx-c-api.so
+   436952  1980-02-01 00:00   jni/x86_64/libsherpa-onnx-cxx-api.so
+  5201192  1980-02-01 00:00   jni/x86_64/libsherpa-onnx-jni.so
+---------                     -------
+127879717                     26 files
+== classes
+Archive:  classes.jar
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+        0  1981-01-01 01:01   META-INF/
+        0  1981-01-01 01:01   com/
+        0  1981-01-01 01:01   com/k2fsa/
+        0  1981-01-01 01:01   com/k2fsa/sherpa/
+        0  1981-01-01 01:01   com/k2fsa/sherpa/onnx/
+     3123  1981-01-01 01:01   com/k2fsa/sherpa/onnx/AudioEvent.class
+     3764  1981-01-01 01:01   com/k2fsa/sherpa/onnx/AudioTagging.class
+     4389  1981-01-01 01:01   com/k2fsa/sherpa/onnx/AudioTaggingConfig.class
+     2670  1981-01-01 01:01   com/k2fsa/sherpa/onnx/AudioTaggingKt.class
+     5649  1981-01-01 01:01   com/k2fsa/sherpa/onnx/AudioTaggingModelConfig.class
+     1466  1981-01-01 01:01   com/k2fsa/sherpa/onnx/DenoisedAudio.class
+     4284  1981-01-01 01:01   com/k2fsa/sherpa/onnx/EndpointConfig.class
+     3246  1981-01-01 01:01   com/k2fsa/sherpa/onnx/EndpointRule.class
+     3570  1981-01-01 01:01   com/k2fsa/sherpa/onnx/FastClusteringConfig.class
+     3383  1981-01-01 01:01   com/k2fsa/sherpa/onnx/FeatureConfig.class
+      820  1981-01-01 01:01   com/k2fsa/sherpa/onnx/FeatureConfigKt.class
+     1458  1981-01-01 01:01   com/k2fsa/sherpa/onnx/GeneratedAudio.class
+     7145  1981-01-01 01:01   com/k2fsa/sherpa/onnx/GenerationConfig.class
+     3937  1981-01-01 01:01   com/k2fsa/sherpa/onnx/HomophoneReplacerConfig.class
+     4681  1981-01-01 01:01   com/k2fsa/sherpa/onnx/KeywordSpotter.class
+     7311  1981-01-01 01:01   com/k2fsa/sherpa/onnx/KeywordSpotterConfig.class
+     2545  1981-01-01 01:01   com/k2fsa/sherpa/onnx/KeywordSpotterKt.class
+     4180  1981-01-01 01:01   com/k2fsa/sherpa/onnx/KeywordSpotterResult.class
+     5095  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineCanaryModelConfig.class
+     5019  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineCohereTranscribeModelConfig.class
+     2674  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineDolphinModelConfig.class
+     2710  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineFireRedAsrCtcModelConfig.class
+     3351  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineFireRedAsrModelConfig.class
+     9796  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineFunAsrNanoModelConfig.class
+     2686  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineMedAsrCtcModelConfig.class
+    25963  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineModelConfig.class
+     5273  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineMoonshineModelConfig.class
+     2710  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineNemoEncDecCtcModelConfig.class
+     2734  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineOmnilingualAsrCtcModelConfig.class
+     3768  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineParaformerModelConfig.class
+     3127  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflinePunctuation.class
+     2757  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflinePunctuationConfig.class
+     4496  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflinePunctuationModelConfig.class
+     7788  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineQwen3AsrModelConfig.class
+     4697  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineRecognizer.class
+    10429  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineRecognizerConfig.class
+    29577  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineRecognizerKt.class
+     5233  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineRecognizerResult.class
+     5007  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSenseVoiceModelConfig.class
+     5507  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeakerDiarization.class
+     6662  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeakerDiarizationConfig.class
+     3251  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeakerDiarizationSegment.class
+     5196  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeakerSegmentationModelConfig.class
+     3488  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeakerSegmentationPyannoteModelConfig.class
+     3417  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeechDenoiser.class
+     3263  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeechDenoiserConfig.class
+     3450  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeechDenoiserDpdfNetModelConfig.class
+     2750  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeechDenoiserGtcrnModelConfig.class
+     6255  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeechDenoiserModelConfig.class
+     3635  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineStream.class
+     4990  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTransducerModelConfig.class
+     7901  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTts.class
+     5932  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsConfig.class
+     5151  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsKittenModelConfig.class
+     6975  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsKokoroModelConfig.class
+     6886  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsMatchaModelConfig.class
+    12103  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsModelConfig.class
+     7082  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsPocketModelConfig.class
+     6533  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsSupertonicModelConfig.class
+     6721  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsVitsModelConfig.class
+     7824  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsZipVoiceModelConfig.class
+     2680  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineWenetCtcModelConfig.class
+     6282  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineWhisperModelConfig.class
+     2753  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineZipformerAudioTaggingModelConfig.class
+     3780  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineZipformerCtcModelConfig.class
+     3277  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlineCtcFstDecoderConfig.class
+     3249  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlineLMConfig.class
+    11674  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlineModelConfig.class
+     2667  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlineNeMoCtcModelConfig.class
+     3344  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlineParaformerModelConfig.class
+     3113  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlinePunctuation.class
+     2744  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlinePunctuationConfig.class
+grep: write error: Broken pipe
+== manifest
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.k2fsa.sherpa.onnx" >
 
-import android.content.res.AssetManager
+    <uses-sdk android:minSdkVersion="21" />
 
-data class OfflineTtsVitsModelConfig(
-    var model: String = "",
-    var lexicon: String = "",
-    var tokens: String = "",
-    var dataDir: String = "",
-    var dictDir: String = "", // unused
-    var noiseScale: Float = 0.667f,
-    var noiseScaleW: Float = 0.8f,
-    var lengthScale: Float = 1.0f,
-)
-
-data class OfflineTtsMatchaModelConfig(
-    var acousticModel: String = "",
-    var vocoder: String = "",
-    var lexicon: String = "",
-    var tokens: String = "",
-    var dataDir: String = "",
-    var dictDir: String = "", // unused
-    var noiseScale: Float = 1.0f,
-    var lengthScale: Float = 1.0f,
-)
-
-data class OfflineTtsKokoroModelConfig(
-    var model: String = "",
-    var voices: String = "",
-    var tokens: String = "",
-    var dataDir: String = "",
-    var lexicon: String = "",
-    var lang: String = "",
-    var dictDir: String = "", // unused
-    var lengthScale: Float = 1.0f,
-)
-
-data class OfflineTtsZipVoiceModelConfig(
-    var tokens: String = "",
-    var encoder: String = "",
-    var decoder: String = "",
-    var vocoder: String = "",
-    var dataDir: String = "",
-    var lexicon: String = "",
-    var featScale: Float = 0.1f,
-    var tShift: Float = 0.5f,
-    var targetRms: Float = 0.1f,
-    var guidanceScale: Float = 1.0f,
-)
-
-data class OfflineTtsKittenModelConfig(
-    var model: String = "",
-    var voices: String = "",
-    var tokens: String = "",
-    var dataDir: String = "",
-    var lengthScale: Float = 1.0f,
-)
-
-/**
- * Configuration for Pocket TTS models.
- *
- * See https://k2-fsa.github.io/sherpa/onnx/tts/pocket/index.html for details.
- *
- * @property lmFlow Path to the LM flow model (.onnx)
- * @property lmMain Path to the LM main model (.onnx)
- * @property encoder Path to the encoder model (.onnx)
- * @property decoder Path to the decoder model (.onnx)
- * @property textConditioner Path to the text conditioner model (.onnx)
- * @property vocabJson Path to vocabulary JSON file
- * @property tokenScoresJson Path to token scores JSON file
- */
-data class OfflineTtsPocketModelConfig(
-  var lmFlow: String = "",
-  var lmMain: String = "",
-  var encoder: String = "",
-  var decoder: String = "",
-  var textConditioner: String = "",
-  var vocabJson: String = "",
-  var tokenScoresJson: String = "",
-  var voiceEmbeddingCacheCapacity: Int = 50,
-)
-
-data class OfflineTtsSupertonicModelConfig(
-  var durationPredictor: String = "",
-  var textEncoder: String = "",
-  var vectorEstimator: String = "",
-  var vocoder: String = "",
-  var ttsJson: String = "",
-  var unicodeIndexer: String = "",
-  var voiceStyle: String = "",
-)
-
-data class OfflineTtsModelConfig(
-    var vits: OfflineTtsVitsModelConfig = OfflineTtsVitsModelConfig(),
-    var matcha: OfflineTtsMatchaModelConfig = OfflineTtsMatchaModelConfig(),
-    var kokoro: OfflineTtsKokoroModelConfig = OfflineTtsKokoroModelConfig(),
-    var zipvoice: OfflineTtsZipVoiceModelConfig = OfflineTtsZipVoiceModelConfig(),
-    var kitten: OfflineTtsKittenModelConfig = OfflineTtsKittenModelConfig(),
-    var pocket: OfflineTtsPocketModelConfig = OfflineTtsPocketModelConfig(),
-    var supertonic: OfflineTtsSupertonicModelConfig = OfflineTtsSupertonicModelConfig(),
-
-    var numThreads: Int = 1,
-    var debug: Boolean = false,
-    var provider: String = "cpu",
-)
-
-data class OfflineTtsConfig(
-    var model: OfflineTtsModelConfig = OfflineTtsModelConfig(),
-    var ruleFsts: String = "",
-    var ruleFars: String = "",
-    var maxNumSentences: Int = 1,
-    var silenceScale: Float = 0.2f,
-)
-
-class GeneratedAudio(
-    val samples: FloatArray,
-    val sampleRate: Int,
-) {
-    fun save(filename: String) =
-        saveImpl(filename = filename, samples = samples, sampleRate = sampleRate)
-
-    private external fun saveImpl(
-        filename: String,
-        samples: FloatArray,
-        sampleRate: Int
-    ): Boolean
-}
-
-data class GenerationConfig(
-    var silenceScale: Float = 0.2f,
-    var speed: Float = 1.0f,
-    var sid: Int = 0,
-    var referenceAudio: FloatArray? = null,
-    var referenceSampleRate: Int = 0,
-    var referenceText: String? = null,
-    var numSteps: Int = 5,
-    var extra: Map<String, String>? = null
-)
-
-class OfflineTts(
-    assetManager: AssetManager? = null,
-    var config: OfflineTtsConfig,
-) {
-    private var ptr: Long
-
-    init {
-        ptr = if (assetManager != null) {
-            newFromAsset(assetManager, config)
-        } else {
-            newFromFile(config)
-        }
-        require(ptr != 0L) {
-            "Invalid OfflineTtsConfig: failed to create native OfflineTts"
-        }
-    }
-
-    fun sampleRate() = getSampleRate(ptr)
-
-    fun numSpeakers() = getNumSpeakers(ptr)
-
-    fun generate(
-        text: String,
-        sid: Int = 0,
-        speed: Float = 1.0f
-    ): GeneratedAudio {
-        return generateImpl(ptr, text = text, sid = sid, speed = speed)
-    }
-
-    fun generateWithCallback(
-        text: String,
-        sid: Int = 0,
-        speed: Float = 1.0f,
-        callback: (samples: FloatArray) -> Int
-    ): GeneratedAudio {
-        return generateWithCallbackImpl(
-            ptr,
-            text = text,
-            sid = sid,
-            speed = speed,
-            callback = callback
-        )
-    }
-
-    fun generateWithConfig(
-      text: String,
-      config: GenerationConfig
-    ): GeneratedAudio {
-        return generateWithConfigImpl(ptr, text, config, null)
-    }
-
-    fun generateWithConfigAndCallback(
-        text: String,
-        config: GenerationConfig,
-        callback: (samples: FloatArray) -> Int
-    ): GeneratedAudio {
-        return generateWithConfigImpl(ptr, text, config, callback)
-    }
-
-    fun allocate(assetManager: AssetManager? = null) {
-        if (ptr == 0L) {
-            ptr = if (assetManager != null) {
-                newFromAsset(assetManager, config)
-            } else {
-                newFromFile(config)
-            }
-            require(ptr != 0L) {
-                "Invalid OfflineTtsConfig: failed to create native OfflineTts"
-            }
-        }
-    }
-
-    fun free() {
-        if (ptr != 0L) {
-            delete(ptr)
-            ptr = 0
-        }
-    }
-
-    protected fun finalize() {
-        if (ptr != 0L) {
-            delete(ptr)
-            ptr = 0
-        }
-    }
-
-    fun release() = finalize()
-
-    private external fun newFromAsset(
-        assetManager: AssetManager,
-        config: OfflineTtsConfig,
-    ): Long
-
-    private external fun newFromFile(
-        config: OfflineTtsConfig,
-    ): Long
-
-    private external fun delete(ptr: Long)
-    private external fun getSampleRate(ptr: Long): Int
-    private external fun getNumSpeakers(ptr: Long): Int
-
-    // The returned array has two entries:
-    //  - the first entry is an 1-D float array containing audio samples.
-    //    Each sample is normalized to the range [-1, 1]
-    //  - the second entry is the sample rate
-    private external fun generateImpl(
-        ptr: Long,
-        text: String,
-        sid: Int = 0,
-        speed: Float = 1.0f
-    ): GeneratedAudio
-
-    private external fun generateWithCallbackImpl(
-        ptr: Long,
-        text: String,
-        sid: Int = 0,
-        speed: Float = 1.0f,
-        callback: (samples: FloatArray) -> Int
-    ): GeneratedAudio
-
-
-    private external fun generateWithConfigImpl(
-        ptr: Long,
-        text: String,
-        config: GenerationConfig,
-        callback: ((samples: FloatArray) -> Int)?
-    ): GeneratedAudio
-
-    companion object {
-        init {
-            System.loadLibrary("sherpa-onnx-jni")
-        }
-    }
-}
-
-// please refer to
-// https://k2-fsa.github.io/sherpa/onnx/tts/pretrained_models/index.html
-// to download models
-fun getOfflineTtsConfig(
-    modelDir: String,
-    modelName: String, // for VITS
-    acousticModelName: String, // for Matcha
-    vocoder: String, // for Matcha
-    voices: String, // for Kokoro or kitten
-    lexicon: String,
-    dataDir: String,
-    dictDir: String, // unused
-    ruleFsts: String,
-    ruleFars: String,
-    numThreads: Int? = null,
-    isKitten: Boolean = false,
-    isSupertonic: Boolean = false,
-    durationPredictor: String = "", // for Supertonic
-    textEncoder: String = "", // for Supertonic
-    vectorEstimator: String = "", // for Supertonic
-    supertonicVocoder: String = "", // for Supertonic
-    ttsJson: String = "", // for Supertonic
-    unicodeIndexer: String = "", // for Supertonic
-    voiceStyle: String = "", // for Supertonic
-): OfflineTtsConfig {
-    // For Matcha TTS, please set
-    // acousticModelName, vocoder
-
-    // For Kokoro TTS, please set
-    // modelName, voices
-
-    // For Kitten TTS, please set
-    // modelName, voices, isKitten
-
-    // For VITS, please set
-    // modelName
-
-    // For Supertonic TTS, please set
-    // isSupertonic, durationPredictor, textEncoder, vectorEstimator,
-    // supertonicVocoder, ttsJson, unicodeIndexer, voiceStyle
-
-    val numberOfThreads = if (numThreads != null) {
-        numThreads
-    } else if (voices.isNotEmpty()) {
-        // for Kokoro and Kitten TTS models, we use more threads
-        4
-    } else {
-        2
-    }
-
-    if (!isSupertonic && modelName.isEmpty() && acousticModelName.isEmpty()) {
-        throw IllegalArgumentException("Please specify a TTS model")
-    }
-
-    if (modelName.isNotEmpty() && acousticModelName.isNotEmpty()) {
-        throw IllegalArgumentException("Please specify either a VITS or a Matcha model, but not both")
-    }
-
-    if (acousticModelName.isNotEmpty() && vocoder.isEmpty()) {
-        throw IllegalArgumentException("Please provide vocoder for Matcha TTS")
-    }
-
-    val vits = if (modelName.isNotEmpty() && voices.isEmpty() && !isSupertonic) {
-        OfflineTtsVitsModelConfig(
-            model = "$modelDir/$modelName",
-            lexicon = "$modelDir/$lexicon",
-            tokens = "$modelDir/tokens.txt",
-            dataDir = dataDir,
-        )
-    } else {
-        OfflineTtsVitsModelConfig()
-    }
-
-    val matcha = if (acousticModelName.isNotEmpty()) {
-        OfflineTtsMatchaModelConfig(
-            acousticModel = "$modelDir/$acousticModelName",
-            vocoder = vocoder,
-            lexicon = "$modelDir/$lexicon",
-            tokens = "$modelDir/tokens.txt",
-            dataDir = dataDir,
-        )
-    } else {
-        OfflineTtsMatchaModelConfig()
-    }
-
-    val kokoro = if (voices.isNotEmpty() && !isKitten && !isSupertonic) {
-        OfflineTtsKokoroModelConfig(
-            model = "$modelDir/$modelName",
-            voices = "$modelDir/$voices",
-            tokens = "$modelDir/tokens.txt",
-            dataDir = dataDir,
-            lexicon = when {
-                lexicon == "" -> lexicon
-                "," in lexicon -> lexicon
-                else -> "$modelDir/$lexicon"
-            },
-        )
-    } else {
-        OfflineTtsKokoroModelConfig()
-    }
-
-    val kitten = if (isKitten) {
-        OfflineTtsKittenModelConfig(
-            model = "$modelDir/$modelName",
-            voices = "$modelDir/$voices",
-            tokens = "$modelDir/tokens.txt",
-            dataDir = dataDir,
-        )
-    } else {
-        OfflineTtsKittenModelConfig()
-    }
-
-    val supertonic = if (isSupertonic) {
-        OfflineTtsSupertonicModelConfig(
-            durationPredictor = "$modelDir/$durationPredictor",
-            textEncoder = "$modelDir/$textEncoder",
-            vectorEstimator = "$modelDir/$vectorEstimator",
-            vocoder = "$modelDir/$supertonicVocoder",
-            ttsJson = "$modelDir/$ttsJson",
-            unicodeIndexer = "$modelDir/$unicodeIndexer",
-            voiceStyle = "$modelDir/$voiceStyle",
-        )
-    } else {
-        OfflineTtsSupertonicModelConfig()
-    }
-
-    return OfflineTtsConfig(
-        model = OfflineTtsModelConfig(
-            vits = vits,
-            matcha = matcha,
-            kokoro = kokoro,
-            kitten = kitten,
-            supertonic = supertonic,
-            numThreads = numberOfThreads,
-            debug = true,
-            provider = "cpu",
-        ),
-        ruleFsts = ruleFsts,
-        ruleFars = ruleFars,
-    )
-}
-== model sizes
-kokoro-int8-multi-lang-v1_1 HTTP/2 200   content-length: 147031220  
-kokoro-multi-lang-v1_1 HTTP/2 200   content-length: 364816464  
-kokoro-int8-multi-lang-v1_0 HTTP/2 200   content-length: 132303094  
-kokoro-multi-lang-v1_0 HTTP/2 200   content-length: 349906910  
-kokoro-int8-en-v0_19 HTTP/2 200   content-length: 103248205  
-207M	kokoro-int8-multi-lang-v1_1
-total 178516
-drwxr-xr-x 4 runner runner      4096 Jun 18  2025 .
-drwxr-xr-x 6 runner runner      4096 Oct 19 01:38 ..
--rw-r--r-- 1 runner runner     11358 Jun 18  2025 LICENSE
--rw-r--r-- 1 runner runner       114 Jun 18  2025 README.md
--rw-r--r-- 1 runner runner     59154 Jun 18  2025 date-zh.fst
+</manifest>== 16KB alignment arm64
+jni/arm64-v8a/libonnxruntime.so 0x4000 
+jni/arm64-v8a/libsherpa-onnx-c-api.so 0x4000 
+jni/arm64-v8a/libsherpa-onnx-cxx-api.so 0x4000 
+jni/arm64-v8a/libsherpa-onnx-jni.so 0x4000 
+== static aar
+   238706  1980-02-01 00:00   classes.jar
+        0  1980-02-01 00:00   jni/
+        0  1980-02-01 00:00   jni/arm64-v8a/
+ 24169352  1980-02-01 00:00   jni/arm64-v8a/libsherpa-onnx-jni.so
+        0  1980-02-01 00:00   jni/armeabi-v7a/
+ 16437284  1980-02-01 00:00   jni/armeabi-v7a/libsherpa-onnx-jni.so
+        0  1980-02-01 00:00   jni/x86/
+ 26491148  1980-02-01 00:00   jni/x86/libonnxruntime.so
+  5540732  1980-02-01 00:00   jni/x86/libsherpa-onnx-jni.so
+        0  1980-02-01 00:00   jni/x86_64/
+ 27359872  1980-02-01 00:00   jni/x86_64/libsherpa-onnx-jni.so
+== model v1_0 int8
+total 153668
+drwxr-xr-x 4 runner runner      4096 Sep  8 04:35 .
+drwxr-xr-x 7 runner runner      4096 Oct 19 01:39 ..
+-rw-r--r-- 1 runner runner     11358 Sep  8 04:35 LICENSE
+-rw-r--r-- 1 runner runner       730 Sep  8 04:35 README.md
+-rw-r--r-- 1 runner runner     59154 Sep  8 04:35 date-zh.fst
 drwxr-xr-x 3 runner runner      4096 Feb 18  2025 dict
 drwxr-xr-x 4 runner runner      4096 Nov 28  2023 espeak-ng-data
--rw-r--r-- 1 runner runner   6366635 Jun 18  2025 lexicon-gb-en.txt
--rw-r--r-- 1 runner runner   5956885 Jun 18  2025 lexicon-us-en.txt
--rw-r--r-- 1 runner runner   2119465 Jun 18  2025 lexicon-zh.txt
--rw-r--r-- 1 runner runner 114299010 Jun 18  2025 model.int8.onnx
--rw-r--r-- 1 runner runner     64482 Jun 18  2025 number-zh.fst
--rw-r--r-- 1 runner runner     88630 Jun 18  2025 phone-zh.fst
--rw-r--r-- 1 runner runner      1111 Jun 18  2025 tokens.txt
--rw-r--r-- 1 runner runner  53790720 Jun 18  2025 voices.bin
-12K	kokoro-int8-multi-lang-v1_1/LICENSE
-4.0K	kokoro-int8-multi-lang-v1_1/README.md
-60K	kokoro-int8-multi-lang-v1_1/date-zh.fst
-14M	kokoro-int8-multi-lang-v1_1/dict
-19M	kokoro-int8-multi-lang-v1_1/espeak-ng-data
-6.1M	kokoro-int8-multi-lang-v1_1/lexicon-gb-en.txt
-5.7M	kokoro-int8-multi-lang-v1_1/lexicon-us-en.txt
-2.1M	kokoro-int8-multi-lang-v1_1/lexicon-zh.txt
-110M	kokoro-int8-multi-lang-v1_1/model.int8.onnx
-64K	kokoro-int8-multi-lang-v1_1/number-zh.fst
-88K	kokoro-int8-multi-lang-v1_1/phone-zh.fst
-4.0K	kokoro-int8-multi-lang-v1_1/tokens.txt
-52M	kokoro-int8-multi-lang-v1_1/voices.bin
+-rw-r--r-- 1 runner runner   6366635 Sep  8 04:35 lexicon-gb-en.txt
+-rw-r--r-- 1 runner runner   5956885 Sep  8 04:35 lexicon-us-en.txt
+-rw-r--r-- 1 runner runner   2365182 Sep  8 04:35 lexicon-zh.txt
+-rw-r--r-- 1 runner runner 114203756 Sep  8 04:35 model.int8.onnx
+-rw-r--r-- 1 runner runner     64482 Sep  8 04:35 number-zh.fst
+-rw-r--r-- 1 runner runner     88630 Sep  8 04:35 phone-zh.fst
+-rw-r--r-- 1 runner runner       687 Sep  8 04:35 tokens.txt
+-rw-r--r-- 1 runner runner  28200960 Sep  8 04:35 voices.bin
+12K	kokoro-int8-multi-lang-v1_0/LICENSE
+4.0K	kokoro-int8-multi-lang-v1_0/README.md
+60K	kokoro-int8-multi-lang-v1_0/date-zh.fst
+14M	kokoro-int8-multi-lang-v1_0/dict
+19M	kokoro-int8-multi-lang-v1_0/espeak-ng-data
+6.1M	kokoro-int8-multi-lang-v1_0/lexicon-gb-en.txt
+5.7M	kokoro-int8-multi-lang-v1_0/lexicon-us-en.txt
+2.3M	kokoro-int8-multi-lang-v1_0/lexicon-zh.txt
+109M	kokoro-int8-multi-lang-v1_0/model.int8.onnx
+64K	kokoro-int8-multi-lang-v1_0/number-zh.fst
+88K	kokoro-int8-multi-lang-v1_0/phone-zh.fst
+4.0K	kokoro-int8-multi-lang-v1_0/tokens.txt
+27M	kokoro-int8-multi-lang-v1_0/voices.bin
 # Introduction
 
-This directory is for kokoro v1.1-zh.
+This directory is for kokoro v1.0
 
-See also https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh
+`generate_voices_bin.py` generates the Sherpa-ONNX voice table from the
+official `Kokoro-82M/voices` directory. The generated v1.0 table contains 54
+voices, including the Spanish `em_santa` voice at speaker ID 53. Existing
+speaker IDs 0 through 52 remain unchanged.
+
+The generator validates the style embedding shape (`510 x 1 x 256`) and
+`float32` dtype before writing the binary file. Run it from this directory
+after downloading the Kokoro-82M repository:
+
+```bash
+python3 generate_voices_bin.py
+```
+
+The corresponding model metadata must be generated with `add_meta_data.py`,
+which derives `n_speakers`, `speaker_names`, `id2speaker`, and `speaker2id`
+from the same mapping.
+== espeak top
 af_dict
 am_dict
 an_dict
@@ -563,13 +207,171 @@ cv_dict
 cy_dict
 da_dict
 de_dict
-README.md
-generate_user_dict.py
-hmm_model.utf8
-idf.utf8
-jieba.dict.utf8
-pos_dict
-stop_words.utf8
-user.dict.utf8
-== speakers (any txt/json listing)
-voices.bin
+el_dict
+en_dict
+eo_dict
+es_dict
+et_dict
+eu_dict
+fa_dict
+fi_dict
+fr_dict
+ga_dict
+gd_dict
+gn_dict
+grc_dict
+gu_dict
+hak_dict
+haw_dict
+he_dict
+hi_dict
+hr_dict
+ht_dict
+hu_dict
+hy_dict
+ia_dict
+id_dict
+intonations
+io_dict
+is_dict
+it_dict
+ja_dict
+jbo_dict
+ka_dict
+kk_dict
+kl_dict
+kn_dict
+ko_dict
+kok_dict
+ku_dict
+ky_dict
+la_dict
+lang
+lb_dict
+lfn_dict
+lt_dict
+lv_dict
+mi_dict
+mk_dict
+ml_dict
+mr_dict
+ms_dict
+mt_dict
+mto_dict
+my_dict
+nci_dict
+ne_dict
+nl_dict
+no_dict
+nog_dict
+om_dict
+or_dict
+pa_dict
+pap_dict
+phondata
+phondata-manifest
+phonindex
+phontab
+piqd_dict
+pl_dict
+pt_dict
+py_dict
+qdb_dict
+qu_dict
+quc_dict
+qya_dict
+ro_dict
+ru_dict
+sd_dict
+shn_dict
+si_dict
+sjn_dict
+sk_dict
+sl_dict
+smj_dict
+sq_dict
+sr_dict
+sv_dict
+sw_dict
+ta_dict
+te_dict
+th_dict
+tk_dict
+tn_dict
+tr_dict
+tt_dict
+ug_dict
+uk_dict
+ur_dict
+uz_dict
+vi_dict
+voices
+yue_dict
+424K	kokoro-int8-multi-lang-v1_0/espeak-ng-data/voices
+468K	kokoro-int8-multi-lang-v1_0/espeak-ng-data/ar_dict
+540K	kokoro-int8-multi-lang-v1_0/espeak-ng-data/phondata
+552K	kokoro-int8-multi-lang-v1_0/espeak-ng-data/yue_dict
+668K	kokoro-int8-multi-lang-v1_0/espeak-ng-data/lang
+672K	kokoro-int8-multi-lang-v1_0/espeak-ng-data/lb_dict
+1.5M	kokoro-int8-multi-lang-v1_0/espeak-ng-data/cmn_dict
+8.2M	kokoro-int8-multi-lang-v1_0/espeak-ng-data/ru_dict
+== Android TTS example MainActivity
+4:import android.content.res.AssetManager
+42:            copyGeneratedWavToUri(uri)
+175:            val filename = application.filesDir.absolutePath + "/generated.wav"
+190:        val filename = application.filesDir.absolutePath + "/generated.wav"
+216:        val file = File(application.filesDir.absolutePath + "/generated.wav")
+234:    private fun copyGeneratedWavToUri(destUri: Uri) {
+236:            val srcFile = File(application.filesDir.absolutePath + "/generated.wav")
+239:                    input.copyTo(output)
+257:        var lexicon: String?
+258:        var dataDir: String?
+259:        var assets: AssetManager? = application.assets
+284:        // For Kokoro -- begin
+286:        // For Kokoro -- end
+292:        lexicon = null
+293:        dataDir = null
+298:        // lexicon = "lexicon.txt"
+305:        // dataDir = "vits-piper-en_US-amy-low/espeak-ng-data"
+312:        // lexicon = "lexicon.txt"
+318:        // lexicon = "lexicon.txt"
+330:        // lexicon = "lexicon.txt"
+338:        // lexicon = "lexicon.txt"
+346:        // dataDir = "matcha-icefall-en_US-ljspeech/espeak-ng-data"
+349:        // kokoro-en-v0_19
+350:        // modelDir = "kokoro-en-v0_19"
+353:        // dataDir = "kokoro-en-v0_19/espeak-ng-data"
+356:        // kokoro-multi-lang-v1_0
+357:        // modelDir = "kokoro-multi-lang-v1_0"
+360:        // dataDir = "kokoro-multi-lang-v1_0/espeak-ng-data"
+361:        // lexicon = "kokoro-multi-lang-v1_0/lexicon-us-en.txt,kokoro-multi-lang-v1_0/lexicon-zh.txt"
+369:        // dataDir = "kokoro-multi-lang-v1_0/espeak-ng-data"
+378:        // dataDir = "matcha-icefall-zh-en/espeak-ng-data"
+379:        // lexicon = "lexicon.txt"
+398:        if (dataDir != null) {
+399:            val newDir = copyDataDir(dataDir!!)
+400:            dataDir = "$newDir/$dataDir"
+403:        val config = getOfflineTtsConfig(
+409:            lexicon = lexicon ?: "",
+410:            dataDir = dataDir ?: "",
+425:        tts = OfflineTts(assetManager = assets, config = config)
+429:    private fun copyDataDir(dataDir: String): String {
+430:        Log.i(TAG, "data dir is $dataDir")
+431:        copyAssets(dataDir)
+433:        val newDataDir = application.getExternalFilesDir(null)!!.absolutePath
+434:        Log.i(TAG, "newDataDir: $newDataDir")
+435:        return newDataDir
+438:    private fun copyAssets(path: String) {
+439:        val assets: Array<String>?
+441:            assets = application.assets.list(path)
+442:            if (assets!!.isEmpty()) {
+443:                copyFile(path)
+445:                val fullPath = "${application.getExternalFilesDir(null)}/$path"
+448:                for (asset in assets.iterator()) {
+450:                    copyAssets(p + asset)
+454:            Log.e(TAG, "Failed to copy $path. $ex")
+458:    private fun copyFile(filename: String) {
+460:            val istream = application.assets.open(filename)
+461:            val newFilename = application.getExternalFilesDir(null).toString() + "/" + filename
+463:            // Log.i(TAG, "Copying $filename to $newFilename")
+474:            Log.e(TAG, "Failed to copy $filename, $ex")
