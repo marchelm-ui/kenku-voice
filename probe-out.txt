@@ -1,377 +1,206 @@
--rw-r--r-- 1 runner runner 50129134 Oct 19 01:39 s.aar
-Archive:  s.aar
-  Length      Date    Time    Name
----------  ---------- -----   ----
-        0  1980-02-01 00:00   R.txt
-      203  1980-02-01 00:00   AndroidManifest.xml
-   238706  1980-02-01 00:00   classes.jar
-        0  1980-02-01 00:00   proguard.txt
-      156  1980-02-01 00:00   META-INF/com/android/build/gradle/aar-metadata.properties
-        0  1980-02-01 00:00   jni/
-        0  1980-02-01 00:00   jni/arm64-v8a/
- 22249560  1980-02-01 00:00   jni/arm64-v8a/libonnxruntime.so
-  4465168  1980-02-01 00:00   jni/arm64-v8a/libsherpa-onnx-c-api.so
-   440688  1980-02-01 00:00   jni/arm64-v8a/libsherpa-onnx-cxx-api.so
-  4771760  1980-02-01 00:00   jni/arm64-v8a/libsherpa-onnx-jni.so
-        0  1980-02-01 00:00   jni/armeabi-v7a/
- 15359592  1980-02-01 00:00   jni/armeabi-v7a/libonnxruntime.so
-  3202700  1980-02-01 00:00   jni/armeabi-v7a/libsherpa-onnx-c-api.so
-   282008  1980-02-01 00:00   jni/armeabi-v7a/libsherpa-onnx-cxx-api.so
-  3428780  1980-02-01 00:00   jni/armeabi-v7a/libsherpa-onnx-jni.so
-        0  1980-02-01 00:00   jni/x86/
- 26491148  1980-02-01 00:00   jni/x86/libonnxruntime.so
-  5051192  1980-02-01 00:00   jni/x86/libsherpa-onnx-c-api.so
-   392768  1980-02-01 00:00   jni/x86/libsherpa-onnx-cxx-api.so
-  5358928  1980-02-01 00:00   jni/x86/libsherpa-onnx-jni.so
-        0  1980-02-01 00:00   jni/x86_64/
- 25581120  1980-02-01 00:00   jni/x86_64/libonnxruntime.so
-  4927096  1980-02-01 00:00   jni/x86_64/libsherpa-onnx-c-api.so
-   436952  1980-02-01 00:00   jni/x86_64/libsherpa-onnx-cxx-api.so
-  5201192  1980-02-01 00:00   jni/x86_64/libsherpa-onnx-jni.so
----------                     -------
-127879717                     26 files
-== classes
-Archive:  classes.jar
-  Length      Date    Time    Name
----------  ---------- -----   ----
-        0  1981-01-01 01:01   META-INF/
-        0  1981-01-01 01:01   com/
-        0  1981-01-01 01:01   com/k2fsa/
-        0  1981-01-01 01:01   com/k2fsa/sherpa/
-        0  1981-01-01 01:01   com/k2fsa/sherpa/onnx/
-     3123  1981-01-01 01:01   com/k2fsa/sherpa/onnx/AudioEvent.class
-     3764  1981-01-01 01:01   com/k2fsa/sherpa/onnx/AudioTagging.class
-     4389  1981-01-01 01:01   com/k2fsa/sherpa/onnx/AudioTaggingConfig.class
-     2670  1981-01-01 01:01   com/k2fsa/sherpa/onnx/AudioTaggingKt.class
-     5649  1981-01-01 01:01   com/k2fsa/sherpa/onnx/AudioTaggingModelConfig.class
-     1466  1981-01-01 01:01   com/k2fsa/sherpa/onnx/DenoisedAudio.class
-     4284  1981-01-01 01:01   com/k2fsa/sherpa/onnx/EndpointConfig.class
-     3246  1981-01-01 01:01   com/k2fsa/sherpa/onnx/EndpointRule.class
-     3570  1981-01-01 01:01   com/k2fsa/sherpa/onnx/FastClusteringConfig.class
-     3383  1981-01-01 01:01   com/k2fsa/sherpa/onnx/FeatureConfig.class
-      820  1981-01-01 01:01   com/k2fsa/sherpa/onnx/FeatureConfigKt.class
-     1458  1981-01-01 01:01   com/k2fsa/sherpa/onnx/GeneratedAudio.class
-     7145  1981-01-01 01:01   com/k2fsa/sherpa/onnx/GenerationConfig.class
-     3937  1981-01-01 01:01   com/k2fsa/sherpa/onnx/HomophoneReplacerConfig.class
-     4681  1981-01-01 01:01   com/k2fsa/sherpa/onnx/KeywordSpotter.class
-     7311  1981-01-01 01:01   com/k2fsa/sherpa/onnx/KeywordSpotterConfig.class
-     2545  1981-01-01 01:01   com/k2fsa/sherpa/onnx/KeywordSpotterKt.class
-     4180  1981-01-01 01:01   com/k2fsa/sherpa/onnx/KeywordSpotterResult.class
-     5095  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineCanaryModelConfig.class
-     5019  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineCohereTranscribeModelConfig.class
-     2674  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineDolphinModelConfig.class
-     2710  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineFireRedAsrCtcModelConfig.class
-     3351  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineFireRedAsrModelConfig.class
-     9796  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineFunAsrNanoModelConfig.class
-     2686  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineMedAsrCtcModelConfig.class
-    25963  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineModelConfig.class
-     5273  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineMoonshineModelConfig.class
-     2710  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineNemoEncDecCtcModelConfig.class
-     2734  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineOmnilingualAsrCtcModelConfig.class
-     3768  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineParaformerModelConfig.class
-     3127  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflinePunctuation.class
-     2757  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflinePunctuationConfig.class
-     4496  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflinePunctuationModelConfig.class
-     7788  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineQwen3AsrModelConfig.class
-     4697  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineRecognizer.class
-    10429  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineRecognizerConfig.class
-    29577  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineRecognizerKt.class
-     5233  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineRecognizerResult.class
-     5007  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSenseVoiceModelConfig.class
-     5507  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeakerDiarization.class
-     6662  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeakerDiarizationConfig.class
-     3251  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeakerDiarizationSegment.class
-     5196  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeakerSegmentationModelConfig.class
-     3488  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeakerSegmentationPyannoteModelConfig.class
-     3417  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeechDenoiser.class
-     3263  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeechDenoiserConfig.class
-     3450  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeechDenoiserDpdfNetModelConfig.class
-     2750  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeechDenoiserGtcrnModelConfig.class
-     6255  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineSpeechDenoiserModelConfig.class
-     3635  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineStream.class
-     4990  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTransducerModelConfig.class
-     7901  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTts.class
-     5932  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsConfig.class
-     5151  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsKittenModelConfig.class
-     6975  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsKokoroModelConfig.class
-     6886  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsMatchaModelConfig.class
-    12103  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsModelConfig.class
-     7082  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsPocketModelConfig.class
-     6533  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsSupertonicModelConfig.class
-     6721  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsVitsModelConfig.class
-     7824  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineTtsZipVoiceModelConfig.class
-     2680  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineWenetCtcModelConfig.class
-     6282  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineWhisperModelConfig.class
-     2753  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineZipformerAudioTaggingModelConfig.class
-     3780  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OfflineZipformerCtcModelConfig.class
-     3277  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlineCtcFstDecoderConfig.class
-     3249  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlineLMConfig.class
-    11674  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlineModelConfig.class
-     2667  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlineNeMoCtcModelConfig.class
-     3344  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlineParaformerModelConfig.class
-     3113  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlinePunctuation.class
-     2744  1981-01-01 01:01   com/k2fsa/sherpa/onnx/OnlinePunctuationConfig.class
-grep: write error: Broken pipe
-== manifest
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.k2fsa.sherpa.onnx" >
+== tts-models assets with pocket/zipvoice
+sherpa-onnx-pocket-tts-2026-01-26.tar.bz2 168148625
+sherpa-onnx-pocket-tts-int8-2026-01-26.tar.bz2 98336520
+sherpa-onnx-supertonic-3-tts-int8-2026-05-11.tar.bz2 128774318
+sherpa-onnx-supertonic-tts-int8-2026-03-06.tar.bz2 84692981
+sherpa-onnx-zipvoice-distill-fp32-zh-en-emilia.tar.bz2 477800463
+sherpa-onnx-zipvoice-distill-int8-zh-en-emilia.tar.bz2 109162785
+sherpa-onnx-zipvoice-distill-zh-en-emilia.tar.bz2 634815977
+sherpa-onnx-zipvoice-zh-en-emilia.tar.bz2 634731511
+== sherpa python api
+GenerationConfig
+OfflineTtsPocketModelConfig
+--- OfflineTtsPocketModelConfig
+__init__(*args, **kwargs)
+Overloaded function.
 
-    <uses-sdk android:minSdkVersion="21" />
+1. __init__(self: sherpa_onnx.lib._sherpa_onnx.OfflineTtsPocketModelConfig) -> None
 
-</manifest>== 16KB alignment arm64
-jni/arm64-v8a/libonnxruntime.so 0x4000 
-jni/arm64-v8a/libsherpa-onnx-c-api.so 0x4000 
-jni/arm64-v8a/libsherpa-onnx-cxx-api.so 0x4000 
-jni/arm64-v8a/libsherpa-onnx-jni.so 0x4000 
-== static aar
-   238706  1980-02-01 00:00   classes.jar
-        0  1980-02-01 00:00   jni/
-        0  1980-02-01 00:00   jni/arm64-v8a/
- 24169352  1980-02-01 00:00   jni/arm64-v8a/libsherpa-onnx-jni.so
-        0  1980-02-01 00:00   jni/armeabi-v7a/
- 16437284  1980-02-01 00:00   jni/armeabi-v7a/libsherpa-onnx-jni.so
-        0  1980-02-01 00:00   jni/x86/
- 26491148  1980-02-01 00:00   jni/x86/libonnxruntime.so
-  5540732  1980-02-01 00:00   jni/x86/libsherpa-onnx-jni.so
-        0  1980-02-01 00:00   jni/x86_64/
- 27359872  1980-02-01 00:00   jni/x86_64/libsherpa-onnx-jni.so
-== model v1_0 int8
-total 153668
-drwxr-xr-x 4 runner runner      4096 Sep  8 04:35 .
-drwxr-xr-x 7 runner runner      4096 Oct 19 01:39 ..
--rw-r--r-- 1 runner runner     11358 Sep  8 04:35 LICENSE
--rw-r--r-- 1 runner runner       730 Sep  8 04:35 README.md
--rw-r--r-- 1 runner runner     59154 Sep  8 04:35 date-zh.fst
-drwxr-xr-x 3 runner runner      4096 Feb 18  2025 dict
-drwxr-xr-x 4 runner runner      4096 Nov 28  2023 espeak-ng-data
--rw-r--r-- 1 runner runner   6366635 Sep  8 04:35 lexicon-gb-en.txt
--rw-r--r-- 1 runner runner   5956885 Sep  8 04:35 lexicon-us-en.txt
--rw-r--r-- 1 runner runner   2365182 Sep  8 04:35 lexicon-zh.txt
--rw-r--r-- 1 runner runner 114203756 Sep  8 04:35 model.int8.onnx
--rw-r--r-- 1 runner runner     64482 Sep  8 04:35 number-zh.fst
--rw-r--r-- 1 runner runner     88630 Sep  8 04:35 phone-zh.fst
--rw-r--r-- 1 runner runner       687 Sep  8 04:35 tokens.txt
--rw-r--r-- 1 runner runner  28200960 Sep  8 04:35 voices.bin
-12K	kokoro-int8-multi-lang-v1_0/LICENSE
-4.0K	kokoro-int8-multi-lang-v1_0/README.md
-60K	kokoro-int8-multi-lang-v1_0/date-zh.fst
-14M	kokoro-int8-multi-lang-v1_0/dict
-19M	kokoro-int8-multi-lang-v1_0/espeak-ng-data
-6.1M	kokoro-int8-multi-lang-v1_0/lexicon-gb-en.txt
-5.7M	kokoro-int8-multi-lang-v1_0/lexicon-us-en.txt
-2.3M	kokoro-int8-multi-lang-v1_0/lexicon-zh.txt
-109M	kokoro-int8-multi-lang-v1_0/model.int8.onnx
-64K	kokoro-int8-multi-lang-v1_0/number-zh.fst
-88K	kokoro-int8-multi-lang-v1_0/phone-zh.fst
-4.0K	kokoro-int8-multi-lang-v1_0/tokens.txt
-27M	kokoro-int8-multi-lang-v1_0/voices.bin
-# Introduction
+2. __init__(self: sherpa_onnx.lib._sherpa_onnx.OfflineTtsPocketModelConfig, lm_flow: str, lm_main: str, encoder: str, decoder: str, text_conditioner: str, vocab_json: str, token_scores_json: str, voice_embedding_cache_capacity: typing.SupportsInt = 50) -> None
 
-This directory is for kokoro v1.0
+--- GenerationConfig
+__init__(self: sherpa_onnx.lib._sherpa_onnx.GenerationConfig) -> None
 
-`generate_voices_bin.py` generates the Sherpa-ONNX voice table from the
-official `Kokoro-82M/voices` directory. The generated v1.0 table contains 54
-voices, including the Spanish `em_santa` voice at speaker ID 53. Existing
-speaker IDs 0 through 52 remain unchanged.
+--- OfflineTts methods ['generate', 'num_speakers', 'sample_rate']
+generate(*args, **kwargs)
+Overloaded function.
 
-The generator validates the style embedding shape (`510 x 1 x 256`) and
-`float32` dtype before writing the binary file. Run it from this directory
-after downloading the Kokoro-82M repository:
+1. generate(self: sherpa_onnx.lib._sherpa_onnx.OfflineTts, text: str, sid: typing.SupportsInt = 0, speed: typing.SupportsFloat = 1.0, callback: collections.abc.Callable[[typing.Annotated[numpy.typing.ArrayLike, numpy.float32], typing.SupportsFloat], int] = None) -> sherpa_onnx.lib._sherpa_onnx.GeneratedAudio
 
-```bash
-python3 generate_voices_bin.py
-```
 
-The corresponding model metadata must be generated with `add_meta_data.py`,
-which derives `n_speakers`, `speaker_names`, `id2speaker`, and `speaker2id`
-from the same mapping.
-== espeak top
-af_dict
-am_dict
-an_dict
-ar_dict
-as_dict
-az_dict
-ba_dict
-be_dict
-bg_dict
-bn_dict
-bpy_dict
-bs_dict
-ca_dict
-chr_dict
-cmn_dict
-cs_dict
-cv_dict
-cy_dict
-da_dict
-de_dict
-el_dict
-en_dict
-eo_dict
-es_dict
-et_dict
-eu_dict
-fa_dict
-fi_dict
-fr_dict
-ga_dict
-gd_dict
-gn_dict
-grc_dict
-gu_dict
-hak_dict
-haw_dict
-he_dict
-hi_dict
-hr_dict
-ht_dict
-hu_dict
-hy_dict
-ia_dict
-id_dict
-intonations
-io_dict
-is_dict
-it_dict
-ja_dict
-jbo_dict
-ka_dict
-kk_dict
-kl_dict
-kn_dict
-ko_dict
-kok_dict
-ku_dict
-ky_dict
-la_dict
-lang
-lb_dict
-lfn_dict
-lt_dict
-lv_dict
-mi_dict
-mk_dict
-ml_dict
-mr_dict
-ms_dict
-mt_dict
-mto_dict
-my_dict
-nci_dict
-ne_dict
-nl_dict
-no_dict
-nog_dict
-om_dict
-or_dict
-pa_dict
-pap_dict
-phondata
-phondata-manifest
-phonindex
-phontab
-piqd_dict
-pl_dict
-pt_dict
-py_dict
-qdb_dict
-qu_dict
-quc_dict
-qya_dict
-ro_dict
-ru_dict
-sd_dict
-shn_dict
-si_dict
-sjn_dict
-sk_dict
-sl_dict
-smj_dict
-sq_dict
-sr_dict
-sv_dict
-sw_dict
-ta_dict
-te_dict
-th_dict
-tk_dict
-tn_dict
-tr_dict
-tt_dict
-ug_dict
-uk_dict
-ur_dict
-uz_dict
-vi_dict
-voices
-yue_dict
-424K	kokoro-int8-multi-lang-v1_0/espeak-ng-data/voices
-468K	kokoro-int8-multi-lang-v1_0/espeak-ng-data/ar_dict
-540K	kokoro-int8-multi-lang-v1_0/espeak-ng-data/phondata
-552K	kokoro-int8-multi-lang-v1_0/espeak-ng-data/yue_dict
-668K	kokoro-int8-multi-lang-v1_0/espeak-ng-data/lang
-672K	kokoro-int8-multi-lang-v1_0/espeak-ng-data/lb_dict
-1.5M	kokoro-int8-multi-lang-v1_0/espeak-ng-data/cmn_dict
-8.2M	kokoro-int8-multi-lang-v1_0/espeak-ng-data/ru_dict
-== Android TTS example MainActivity
-4:import android.content.res.AssetManager
-42:            copyGeneratedWavToUri(uri)
-175:            val filename = application.filesDir.absolutePath + "/generated.wav"
-190:        val filename = application.filesDir.absolutePath + "/generated.wav"
-216:        val file = File(application.filesDir.absolutePath + "/generated.wav")
-234:    private fun copyGeneratedWavToUri(destUri: Uri) {
-236:            val srcFile = File(application.filesDir.absolutePath + "/generated.wav")
-239:                    input.copyTo(output)
-257:        var lexicon: String?
-258:        var dataDir: String?
-259:        var assets: AssetManager? = application.assets
-284:        // For Kokoro -- begin
-286:        // For Kokoro -- end
-292:        lexicon = null
-293:        dataDir = null
-298:        // lexicon = "lexicon.txt"
-305:        // dataDir = "vits-piper-en_US-amy-low/espeak-ng-data"
-312:        // lexicon = "lexicon.txt"
-318:        // lexicon = "lexicon.txt"
-330:        // lexicon = "lexicon.txt"
-338:        // lexicon = "lexicon.txt"
-346:        // dataDir = "matcha-icefall-en_US-ljspeech/espeak-ng-data"
-349:        // kokoro-en-v0_19
-350:        // modelDir = "kokoro-en-v0_19"
-353:        // dataDir = "kokoro-en-v0_19/espeak-ng-data"
-356:        // kokoro-multi-lang-v1_0
-357:        // modelDir = "kokoro-multi-lang-v1_0"
-360:        // dataDir = "kokoro-multi-lang-v1_0/espeak-ng-data"
-361:        // lexicon = "kokoro-multi-lang-v1_0/lexicon-us-en.txt,kokoro-multi-lang-v1_0/lexicon-zh.txt"
-369:        // dataDir = "kokoro-multi-lang-v1_0/espeak-ng-data"
-378:        // dataDir = "matcha-icefall-zh-en/espeak-ng-data"
-379:        // lexicon = "lexicon.txt"
-398:        if (dataDir != null) {
-399:            val newDir = copyDataDir(dataDir!!)
-400:            dataDir = "$newDir/$dataDir"
-403:        val config = getOfflineTtsConfig(
-409:            lexicon = lexicon ?: "",
-410:            dataDir = dataDir ?: "",
-425:        tts = OfflineTts(assetManager = assets, config = config)
-429:    private fun copyDataDir(dataDir: String): String {
-430:        Log.i(TAG, "data dir is $dataDir")
-431:        copyAssets(dataDir)
-433:        val newDataDir = application.getExternalFilesDir(null)!!.absolutePath
-434:        Log.i(TAG, "newDataDir: $newDataDir")
-435:        return newDataDir
-438:    private fun copyAssets(path: String) {
-439:        val assets: Array<String>?
-441:            assets = application.assets.list(path)
-442:            if (assets!!.isEmpty()) {
-443:                copyFile(path)
-445:                val fullPath = "${application.getExternalFilesDir(null)}/$path"
-448:                for (asset in assets.iterator()) {
-450:                    copyAssets(p + asset)
-454:            Log.e(TAG, "Failed to copy $path. $ex")
-458:    private fun copyFile(filename: String) {
-460:            val istream = application.assets.open(filename)
-461:            val newFilename = application.getExternalFilesDir(null).toString() + "/" + filename
-463:            // Log.i(TAG, "Copying $filename to $newFilename")
-474:            Log.e(TAG, "Failed to copy $filename, $ex")
+Generate speech from text.
+
+Args:
+  text:
+    The text to generate speech for.
+  sid:
+    Speaker ID. Used for multi-speaker models.
+  speed:
+    The speaking speed. Larger values produce faster speech.
+  callback:
+    If not None, it is called during speech generation with
+    ``(samples: np.ndarray, progress: float) -> int``.
+    Return a non-zero value to stop generation early.
+
+Returns:
+  A ``GeneratedAudio`` object containing the audio samples and sample rate.
+
+
+2. generate(self: sherpa_onnx.lib._sherpa_onnx.OfflineTts, text: str, config: sherpa_onnx.lib._sherpa_onnx.GenerationConfig, callback: collections.abc.Callable[[typing.Annotated[numpy.typing.ArrayLike, numpy.float32], typing.SupportsFloat], int] = None) -> sherpa_onnx.lib._sherpa_onnx.GeneratedAudio
+
+3. generate(self: sherpa_onnx.lib._sherpa_onnx.OfflineTts, text: str, prompt_text: str, prompt_samples: collections.abc.Sequence[typing.SupportsFloat], sample_rate: typing.SupportsInt, speed: typing.SupportsFloat = 1.0, num_steps: typing.SupportsInt = 4, callback: collections.abc.Callable[[typing.Annotated[numpy.typing.ArrayLike, numpy.float32], typing.SupportsFloat], int] = None) -> sherpa_onnx.lib._sherpa_onnx.GeneratedAudio
+
+== sfx crawl
+pages 146
+skip https://opengameart.org/content/10-book-page-flips []
+skip https://opengameart.org/content/100-cc0-metal-and-wood-sfx []
+skip https://opengameart.org/content/100-cc0-sfx []
+skip https://opengameart.org/content/100-cc0-sfx-2 []
+skip https://opengameart.org/content/12-3-knocks-wooden-doors []
+skip https://opengameart.org/content/2-wooden-squish-splatter-sequences []
+skip https://opengameart.org/content/20-rustles-dry-leaves []
+skip https://opengameart.org/content/202-more-sound-effects []
+skip https://opengameart.org/content/25-spooky-sound-effects []
+skip https://opengameart.org/content/3-melee-sounds []
+skip https://opengameart.org/content/30-cc0-sfx-loops []
+skip https://opengameart.org/content/33-metal-clang-sounds-cast-iron-pans []
+skip https://opengameart.org/content/40-cc0-water-splash-slime-sfx []
+skip https://opengameart.org/content/5-break-crunch-impacts []
+skip https://opengameart.org/content/50-rpg-sound-effects []
+skip https://opengameart.org/content/6-monstrous-growls []
+skip https://opengameart.org/content/68-workshop-sounds []
+skip https://opengameart.org/content/7-eating-crunches []
+skip https://opengameart.org/content/75-cc0-breaking-falling-hit-sfx []
+skip https://opengameart.org/content/8-bit-sound-fx []
+skip https://opengameart.org/content/8-wet-squish-slurp-impacts []
+skip https://opengameart.org/content/80-cc0-creature-sfx []
+skip https://opengameart.org/content/80-cc0-creture-sfx-2 []
+skip https://opengameart.org/content/80-cc0-rpg-sfx []
+skip https://opengameart.org/content/95-sfx-pack-beats-warrior-nian []
+skip https://opengameart.org/content/action-sounds []
+skip https://opengameart.org/content/ambient-bird-sounds []
+skip https://opengameart.org/content/ambient-mountain-river-wind-and-forest-and-waterfall []
+skip https://opengameart.org/content/applause-in-a-large-hall-or-church []
+skip https://opengameart.org/content/archers-shooting []
+skip https://opengameart.org/content/arrow-hit-twang []
+skip https://opengameart.org/content/atmospheric-interaction-sound-pack []
+skip https://opengameart.org/content/attack-of-the-angry-dogs-screams-rips []
+skip https://opengameart.org/content/barn-owl-screech []
+skip https://opengameart.org/content/battle-at-sea []
+skip https://opengameart.org/content/big-scary-troll-sounds []
+skip https://opengameart.org/content/bird-chirping-sounds []
+skip https://opengameart.org/content/birdcricketfrog-and-mosquito-sounds []
+skip https://opengameart.org/content/black-smith-sounds []
+skip https://opengameart.org/content/blacksmiths-hammer []
+skip https://opengameart.org/content/book-flip-sounds []
+skip https://opengameart.org/content/bow-arrow-shot []
+skip https://opengameart.org/content/breaking-bottle []
+skip https://opengameart.org/content/cabinet-lock-sfx-sound-effect []
+skip https://opengameart.org/content/cat-purr-meow []
+skip https://opengameart.org/content/cat-sfx []
+skip https://opengameart.org/content/chain-winch-sounds []
+skip https://opengameart.org/content/character-quotes []
+skip https://opengameart.org/content/chicken-sound-effect []
+skip https://opengameart.org/content/church-bell []
+skip https://opengameart.org/content/completion-sound []
+skip https://opengameart.org/content/cozy-farm-sfx-50-farming-game-sound-effects-tools-harvest-shop-ui-jingles []
+skip https://opengameart.org/content/creaky-light-wooden-door []
+skip https://opengameart.org/content/crow []
+skip https://opengameart.org/content/crow-caw []
+skip https://opengameart.org/content/crows-singing []
+skip https://opengameart.org/content/cutlery-sounds []
+skip https://opengameart.org/content/do-you-remember-laughter []
+skip https://opengameart.org/content/dog-barking-mono []
+skip https://opengameart.org/content/dog-grunt []
+skip https://opengameart.org/content/dog-snarl-grunt-grumble []
+skip https://opengameart.org/content/dog-sounds []
+skip https://opengameart.org/content/door-open-door-close-set []
+skip https://opengameart.org/content/dripping-water-loop []
+skip https://opengameart.org/content/equipment-clicks-ii []
+skip https://opengameart.org/content/evil-creature []
+skip https://opengameart.org/content/evil-laugh []
+skip https://opengameart.org/content/fantasy-accessory-sfx-library []
+skip https://opengameart.org/content/fantasy-sound-effects-library []
+skip https://opengameart.org/content/fantasy-sound-effects-tinysized-sfx []
+skip https://opengameart.org/content/fantozzis-footsteps-grasssand-stone []
+skip https://opengameart.org/content/faq []
+skip https://opengameart.org/content/farm-animals []
+skip https://opengameart.org/content/fire-crackling []
+skip https://opengameart.org/content/fire-staff-sound-effects []
+skip https://opengameart.org/content/fireplace-sound-loop []
+skip https://opengameart.org/content/fleshy-fight-sounds []
+skip https://opengameart.org/content/footsteps-leather-cloth-armor []
+skip https://opengameart.org/content/footsteps-on-different-surfaces []
+skip https://opengameart.org/content/fps-placeholder-sounds []
+skip https://opengameart.org/content/free-crowd-cheering-sounds []
+skip https://opengameart.org/content/free-general-ambience-sounds []
+skip https://opengameart.org/content/funny-comic-cartoon-bounce-sound []
+skip https://opengameart.org/content/game-voice []
+skip https://opengameart.org/content/ghost-monster-voice-moaning-growling []
+skip https://opengameart.org/content/girly-scream []
+skip https://opengameart.org/content/goblin-death []
+skip https://opengameart.org/content/goblins-sound-pack []
+skip https://opengameart.org/content/guttural-vocals []
+skip https://opengameart.org/content/hammer-on-anvil []
+skip https://opengameart.org/content/horse-gallop-loop []
+skip https://opengameart.org/content/horse-trotting []
+skip https://opengameart.org/content/inventory-bag []
+skip https://opengameart.org/content/inventory-sound-effects []
+skip https://opengameart.org/content/items-door-fire-weapon-hits []
+skip https://opengameart.org/content/key-jiggle []
+skip https://opengameart.org/content/kitten-mew []
+skip https://opengameart.org/content/knife-sharpening-slice-2 []
+skip https://opengameart.org/content/level-up-power-up-coin-get-13-sounds []
+skip https://opengameart.org/content/level-up-sound-effects []
+skip https://opengameart.org/content/medieval-smith-pack []
+skip https://opengameart.org/content/medieval-sound-effects-weapon-impacts []
+skip https://opengameart.org/content/meow []
+skip https://opengameart.org/content/metal-clang-explosions-zing []
+skip https://opengameart.org/content/metal-clang-sounds []
+skip https://opengameart.org/content/metal-impact-sounds []
+skip https://opengameart.org/content/monster-and-creatures-sound-effects-pack-001 []
+skip https://opengameart.org/content/monster-sound-pack-volume-1 []
+skip https://opengameart.org/content/mouse-click []
+skip https://opengameart.org/content/nature-sounds-pack []
+skip https://opengameart.org/content/october-2026-art-challenge-phobias []
+skip https://opengameart.org/content/old-man-cough []
+skip https://opengameart.org/content/open-chest []
+skip https://opengameart.org/content/open-chest-sfx []
+skip https://opengameart.org/content/packsmithy-sfx-sampler-30-synthesised-sound-effects-ui-retro-horror-sci-fi-glitch []
+skip https://opengameart.org/content/page-flips []
+skip https://opengameart.org/content/pig-sfx-pack []
+skip https://opengameart.org/content/point-bell []
+skip https://opengameart.org/content/punch []
+skip https://opengameart.org/content/punches-hits-swords-and-squishes []
+skip https://opengameart.org/content/rabbit-eating []
+skip https://opengameart.org/content/random-sfx []
+skip https://opengameart.org/content/random-sounds-samples []
+skip https://opengameart.org/content/red-eclipse-sounds []
+skip https://opengameart.org/content/rockbreaking []
+skip https://opengameart.org/content/rpg-sound-pack []
+skip https://opengameart.org/content/saw-or-wood-impact []
+skip https://opengameart.org/content/sci-fi-aliens-and-cows-pack []
+skip https://opengameart.org/content/sea-and-river-wave-sounds []
+skip https://opengameart.org/content/sheep-baa []
+skip https://opengameart.org/content/sheep-sound-bleats-yo-frankie []
+skip https://opengameart.org/content/sick-noises []
+skip https://opengameart.org/content/smithing-sound []
+skip https://opengameart.org/content/snowsong-sound-and-music-pack []
+skip https://opengameart.org/content/sound-effects-pack []
+skip https://opengameart.org/content/space-ships-in-distress []
+skip https://opengameart.org/content/spell-sounds-starter-pack []
+skip https://opengameart.org/content/stream-sounds []
+skip https://opengameart.org/content/swish-bamboo-stick-weapon-swhoshes []
+skip https://opengameart.org/content/swishes-sound-pack []
+skip https://opengameart.org/content/thunder-rain-and-wind []
+skip https://opengameart.org/content/vulture-imitation []
+skip https://opengameart.org/content/water-waves []
+skip https://opengameart.org/content/wind1 []
+skip https://opengameart.org/content/wolf-monster-sound []
+skip https://opengameart.org/content/yak-imitation []
+== sfx files
+ls: cannot access 'sfx_raw/*/': No such file or directory
+du: cannot access 'sfx_raw/*/': No such file or directory
+## sfx_raw/*/ 0 files 
+ls: cannot access 'sfx_raw/*/': No such file or directory
+-rw-r--r-- 1 runner runner 172 Oct 19 02:10 sfx-raw.zip
