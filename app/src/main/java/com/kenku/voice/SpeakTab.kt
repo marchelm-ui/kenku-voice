@@ -328,6 +328,8 @@ class SpeakTab(private val act: MainActivity) {
         }.apply { textSize = 13f; minHeight = ui.dp(40); minimumHeight = ui.dp(40) }, ui.wrap())
         heading("Screen", "")
         row("Keep screen awake", "Stops the phone from locking while the app is open, handy at the table", awakeOn, { awakeOn = it }, null)
+        body.addView(ui.button("💾 Save a backup file") { exportPack() }.apply { textSize = 13f; minHeight = ui.dp(44); minimumHeight = ui.dp(44) }, ui.wrap())
+        body.addView(ui.body("Packs your clones, recordings and saved lines into one file you can keep anywhere.", 12f))
         body.addView(ui.body("Mocking Bird v${BuildConfig.VERSION_NAME}", 12f).apply { setPadding(0, ui.dp(8), 0, 0) })
 
         val sample = "Squawk! You owe us gold, friend."
@@ -360,6 +362,34 @@ class SpeakTab(private val act: MainActivity) {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    /** Packs clones, mimic recordings and the saved-lines index into one shareable zip. */
+    private fun exportPack() {
+        act.toast("Packing your kenku's things…")
+        act.ioThread.execute {
+            val result = try {
+                val shareDir = File(act.cacheDir, "share").apply { mkdirs() }
+                val f = File(shareDir, "mocking-bird-backup.zip")
+                ZipPack.build(act.filesDir, f) to f
+            } catch (e: Exception) { null }
+            act.main.post {
+                if (!act.alive) return@post
+                when {
+                    result == null -> act.toast("Couldn't make the backup file.")
+                    result.first == 0 -> act.toast("Nothing to back up yet.")
+                    else -> try {
+                        val uri = FileProvider.getUriForFile(act, "com.kenku.voice.files", result.second)
+                        val send = Intent(Intent.ACTION_SEND).apply {
+                            type = "application/zip"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        act.startActivity(Intent.createChooser(send, "Save Mocking Bird backup (${result.first} files)"))
+                    } catch (e: Exception) { act.toast("Couldn't share the backup.") }
+                }
+            }
+        }
     }
 
     private var previewing = false

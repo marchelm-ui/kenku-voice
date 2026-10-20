@@ -3,6 +3,26 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 35 — a backup the user holds in their own hands (v4.35, 2026-10-20)
+
+**Fault found:** cycle 31's auto-backup is real but invisible and conditional —
+it runs on Google's schedule, under Google's quota, to Google's cloud, and the
+user can neither see it happen nor carry it anywhere else. For data this
+personal (cloned voices of friends), "trust the platform" deserves a manual
+alternative.
+
+**Shipped:** `ZipPack` (pure): packs exactly what the backup rules protect —
+clones, mimic recordings, the saved-lines index; regenerable line audio and
+temp residue stay out — plus a "💾 Save a backup file" button in the Voices
+dialog that builds the zip off the UI thread and hands it to the share sheet
+(Drive, email, cable, anywhere). 3 tests: pack contents mirror the backup
+rules with bulk and residue excluded, byte-for-byte round-trip, empty data dir
+packs cleanly. (Restore-from-zip is the natural next half; noted in backlog.)
+
+**Learned:** redundancy for irreplaceable data means *different* failure
+domains, not two copies in the same one — the platform backup and the user's
+own file fail for unrelated reasons, which is the point.
+
 ## Cycle 34 — the phrasebook grows into its role (v4.34, 2026-10-20)
 
 **Fault found:** not a defect — an under-filled container. Since cycle 7 a
@@ -701,3 +721,4 @@ Python side is the authority on the models.
 - targetSdk 36 + edge-to-edge layout (required for any future Play release).
 - Accessibility: labels and live regions done (cycle 21); focus order and
   gesture flow still need a human with TalkBack on.
+- Restore from a backup zip (import counterpart to cycle 35's export).
