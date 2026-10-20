@@ -7,7 +7,6 @@ import android.os.SystemClock
 import java.io.File
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
-import kotlin.random.Random
 
 /**
  * Streams audio to the speaker as it is produced, so a line starts playing as soon as
@@ -188,18 +187,7 @@ class Performer(private val engine: VoiceEngine) {
         return Result(parts, out)
     }
 
-    private fun groupOf(s: Speaker) = when (s) { is Speaker.Builtin -> s.accent.key; is Speaker.Cloned -> "clone:" + s.clone.id }
+    private fun groupOf(s: Speaker) = VoicePick.groupOf(s)
 
-    /**
-     * A different speaker every snippet. Accents (and each clone) get an equal chance,
-     * so the 20 American voices don't crowd out the rest; then a voice within it.
-     */
-    private fun pick(pool: List<Speaker>, last: Speaker?, lastGroup: String?): Speaker {
-        if (pool.size == 1) return pool[0]
-        val groups = pool.groupBy { groupOf(it) }
-        val keys = groups.keys.filter { it != lastGroup }.ifEmpty { groups.keys.toList() }
-        val members = groups.getValue(keys[Random.nextInt(keys.size)])
-        val choices = members.filter { it != last }.ifEmpty { members }
-        return choices[Random.nextInt(choices.size)]
-    }
+    private fun pick(pool: List<Speaker>, last: Speaker?, lastGroup: String?) = VoicePick.pick(pool, last, lastGroup)
 }

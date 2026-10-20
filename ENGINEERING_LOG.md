@@ -3,6 +3,25 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 19 — the founding promise gets its tests (v4.19, 2026-10-20)
+
+**Fault found:** "a different voice and accent every 2–3 words" — the original
+request the whole app grew from — was enforced by `Performer.pick()`, private,
+on a hidden `Random.Default`, tested by nothing. The no-repeat rule and the
+group-fairness rule (so twenty American voices don't drown two British ones)
+were one refactor from silently unhappening, exactly like cycle 10's clamps.
+
+**Shipped:** `VoicePick` (pure, injectable Random) with `pick` and `groupOf`
+moved out of Performer. 6 tests pin: no speaker repeats, no accent repeats when
+another exists, each accent group lands within 3 % of an equal share over
+15 000 picks regardless of group size, a clone counts as a group of its own
+(half the picks against three builtin voices), a lone speaker may repeat, and
+two voices in one accent alternate without deadlock.
+
+**Learned:** the oldest behavior in an app is the likeliest to be untested —
+it predates the test suite, and nothing since has forced it under one. Audit
+the founding features first, not last.
+
 ## Cycle 18 — releases say what changed (v4.18, 2026-10-20)
 
 **Fault found:** every release carried the same generic blurb, so from the
