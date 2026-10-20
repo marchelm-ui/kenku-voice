@@ -5,14 +5,14 @@ plugins {
 
 android {
     namespace = "com.kenku.voice"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.kenku.voice"
         minSdk = 26
         targetSdk = 34
         versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
-        versionName = "4.7." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
+        versionName = "4.8." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
         // Pixel phones are 64-bit ARM; leaving out other chips keeps the app ~100 MB smaller.
         ndk { abiFilters += listOf("arm64-v8a") }
     }
@@ -28,6 +28,18 @@ android {
 
     packaging {
         jniLibs { useLegacyPackaging = false }
+    }
+
+    // Lint is a zero-warning gate: any new warning fails the build. Checks that
+    // conflict with deliberate product decisions are disabled, with the reason.
+    lint {
+        warningsAsErrors = true
+        // English-only is the product: a kenku speaking English in many stolen accents.
+        disable += "SetTextI18n"
+        // Built for Marcus's Pixel; arm64-only is deliberate (saves ~100 MB), ChromeOS is a non-goal.
+        disable += "ChromeOsAbiSupport"
+        // targetSdk 36 + edge-to-edge sits in the backlog; it needs a visual check on the real phone first.
+        disable += "OldTargetApi"
     }
 
     // A fixed key so each new build installs over the old one without losing saved lines.
@@ -62,8 +74,8 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.core:core-ktx:1.19.1")
+    implementation("androidx.appcompat:appcompat:1.8.0")
     // sherpa-onnx (offline speech engine), downloaded by the build workflow.
     implementation(files("libs/sherpa-onnx.aar"))
     testImplementation("junit:junit:4.13.2")

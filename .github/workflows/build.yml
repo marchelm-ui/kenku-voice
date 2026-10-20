@@ -117,11 +117,9 @@ jobs:
           set -o pipefail
           gradle :app:assembleRelease --no-daemon 2>&1 | tee -a build-log.txt
 
-      - name: Run Android lint (report only)
+      - name: Run Android lint (zero-warning gate)
         run: |
-          gradle :app:lintRelease --no-daemon --continue > lint-log.txt 2>&1 || true
-          ls app/build/reports/ 2>/dev/null || true
-          (grep -E "Error|Warning" -A0 app/build/reports/lint-results-release.txt 2>/dev/null | head -c 150000 || true) > lint-summary.txt
+          gradle :app:lintRelease --no-daemon --continue > lint-log.txt 2>&1; LINT=$?
           cp app/build/reports/lint-results-release.txt lint-full.txt 2>/dev/null || cp lint-log.txt lint-full.txt
           git config user.name build-bot
           git config user.email build-bot@users.noreply.github.com
@@ -132,6 +130,8 @@ jobs:
           git commit -q -m "Lint report build ${{ github.run_number }}"
           git push -q -f origin lint-report
           git checkout -q -f ${{ github.sha }}
+          if [ "$LINT" -ne 0 ]; then echo "Lint failed — report tail:"; tail -60 lint-full.txt; fi
+          exit $LINT
 
       - name: Name the APK
         run: cp app/build/outputs/apk/release/app-release.apk MockingBird.apk

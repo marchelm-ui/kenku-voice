@@ -3,6 +3,26 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 8 — lint becomes a zero-warning gate (v4.8, 2026-10-20)
+
+**Fault found:** the CI lint step was "report only" — 36 warnings were being
+published to a branch nobody reads. 31 were i18n noise (the app is English-only
+by design), but buried in the noise sat real signals: a static-Context flag on
+`VoiceEngine.shared`, two stale androidx versions, and the unflagged guarantee
+that any *future* real warning would drown just the same.
+
+**Shipped:** `lint { warningsAsErrors = true }` with three checks disabled, each
+carrying its product reason in the build file (English-only; arm64/Pixel-only;
+targetSdk bump backlogged pending a visual check). The StaticFieldLeak flag is
+suppressed at the one field with proof it's safe (only the application context
+is ever stored). androidx core-ktx 1.13.1→1.19.1, appcompat 1.7.0→1.8.0,
+compileSdk 34→36 (compile-time only; targetSdk stays 34). The CI step now fails
+the build on any lint finding and still publishes the report first.
+
+**Learned:** a warning list that can only grow is a warning list nobody reads.
+Drive it to zero once, then make zero the contract — same lesson as cycle 2's
+"a benchmark that only prints is decoration", one layer up.
+
 ## Cycle 7 — pin a phrase + the line list becomes pure (v4.7, 2026-10-20)
 
 **Fault found:** two in one place. (a) The phrasebook could only dump a phrase

@@ -1,5 +1,6 @@
 package com.kenku.voice
 
+import android.annotation.SuppressLint
 import android.content.Context
 import com.k2fsa.sherpa.onnx.GenerationConfig
 import com.k2fsa.sherpa.onnx.OfflineTts
@@ -258,6 +259,8 @@ class VoiceEngine(private val context: Context) {
         const val DATA_VERSION = "v1_0-fp32-1"
         const val POCKET_VERSION = "int8-2026-01-26"
 
+        // Not a leak: get() only ever stores the application context, never an Activity.
+        @SuppressLint("StaticFieldLeak")
         @Volatile private var shared: VoiceEngine? = null
 
         /**
