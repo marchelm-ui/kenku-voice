@@ -3,6 +3,23 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 20 — the phrasebook is data too (v4.20, 2026-10-20)
+
+**Fault found:** after cycle 9 guarded the sound catalog, one data-as-code
+surface remained bare: the 62 phrasebook phrases, which are one-tap content —
+pinnable straight to Quick lines since cycle 7. Nothing stopped a future edit
+from adding a 30-word monologue, a duplicate, an unpunctuated fragment the
+voices would mis-read, or a phrase with a [tag] the picker can't preview.
+
+**Shipped:** `PhrasebookSanityTest` (4 tests): sections named, iconed,
+non-empty; no duplicate phrases; every phrase 1–12 words, cleanly ended, tag
+free; and every phrase splits losslessly into model-sized chunks across seeds.
+README gains a "How quality is kept" section pointing here.
+
+**Learned:** cycle 9's rule ("anything the app reads to decide behavior gets a
+guard") applies to things the app *offers the user to say*, too — content is
+an interface.
+
 ## Cycle 19 — the founding promise gets its tests (v4.19, 2026-10-20)
 
 **Fault found:** "a different voice and accent every 2–3 words" — the original

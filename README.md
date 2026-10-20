@@ -35,6 +35,16 @@ Every push to `main` builds a new release automatically, after an ARM voice test
 checks all voices, cloning and speed. Newer builds install over older ones and
 keep your saved lines and clones. Built for 64-bit ARM phones such as Google Pixel.
 
+## How quality is kept
+
+Every push runs two CI jobs before anything is released: an ARM runner loads
+the real voice models and gates all 54 voices on loudness, speed (RTF), reply
+latency and a table-talk canary of messy inputs; the build job runs ~100 JVM
+unit tests over the pure core (chunking, stitching, DSP, tuning clamps, voice
+picking, catalogs), a zero-warning lint gate, APK content and size checks, and
+only then publishes. The app improves in recorded cycles — each one is a found
+fault, a fix, and tests that pin it — in [ENGINEERING_LOG.md](ENGINEERING_LOG.md).
+
 ## Credits and licenses
 
 - Kokoro-82M by hexgrad (Apache-2.0) – built-in voices
