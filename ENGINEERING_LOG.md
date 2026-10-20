@@ -3,6 +3,22 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 39 — the front page catches up (v4.39, 2026-10-20)
+
+**Fault found:** the README described the app as of this morning — no mention
+of backup/restore, data durability, or today's grown counts (12 styles, 85
+phrases in 10 sections, pin-a-phrase). The first thing a visitor (or Marcus on
+a new device) reads was underselling the thing it documents.
+
+**Shipped:** a "Your data stays yours" section (auto-backup, manual
+backup/restore, crash-safe indexes, orphan recovery) and refreshed, verified
+counts in the Speak description. Checked every numeric claim against the code
+before writing it — the same discipline as a lint gate, applied to prose.
+
+**Learned:** documentation debt accrues *fastest* on productive days; 34
+cycles moved the app while the front page stood still. Docs deserve a seat in
+the fresh-eyes rotation, not just code.
+
 ## Cycle 38 — the voice roster is pinned (v4.38, 2026-10-20)
 
 **Fault found:** the 54-entry speaker-id list (voices.bin order) and its

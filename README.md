@@ -6,12 +6,13 @@ account, no internet, no subscription.
 ## Three tabs
 
 **🗣️ Speak** – Type a line and press Enter. It is split into natural 2–3 word
-snippets and each one is spoken by a different stolen voice, blended together and
-streamed so it starts talking in under a second. **＋ Add** drops in phrases from
-the 📜 phrasebook or sound effects mid-sentence (for example `Pay up [coins] or
-else`). Optional voice effects: Cave echo, Distant, Old memory. Every line is saved for
-instant replay, re-voicing, pinning and sharing; pinned lines become one-tap
-**⚡ Quick lines** at the top.
+snippets and each one is spoken by a different stolen voice (54 voices across 9
+accents, 12 speaking styles), blended together and streamed so it starts talking
+in under a second. **＋ Add** drops in phrases from the 📜 phrasebook (85 ready
+lines in 10 situations, each pinnable straight to the Quick row) or sound effects
+mid-sentence (for example `Pay up [coins] or else`). Optional voice effects: Cave
+echo, Distant, Old memory. Every line is saved for instant replay, re-voicing,
+pinning and sharing; pinned lines become one-tap **⚡ Quick lines** at the top.
 
 **🎭 Clones** – Record about 10 seconds of someone talking (or import an audio
 file), give the voice a name, and your kenku can mimic them. Each clone can be
@@ -24,6 +25,14 @@ Armor, People, Animals, Monsters, Magic, and Nature & Weather. Tap to play, tap
 again to stop, hold for loop / favorite / use in a line, search by name, and set
 the volume. **🦜 My Mimicry** records real sounds at the table (a laugh, a door,
 a friend's catchphrase) to replay later or drop into lines, just like a kenku.
+
+## Your data stays yours
+
+Everything lives on the phone. Clones, recordings, saved lines and settings ride
+Android's automatic backup to a new phone, and the Voices dialog has **💾 Save a
+backup file / 📥 Restore** for a backup you keep anywhere you like — Drive, email,
+a cable. Indexes are written crash-safe, and recordings a damaged index forgets
+are auto-recovered instead of lost.
 
 ## Install on your phone
 
