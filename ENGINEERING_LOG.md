@@ -3,6 +3,29 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 11 — the sound matcher is pure, and its crash is dead (v4.11, 2026-10-20)
+
+**Fault found:** a real latent crash, found the moment the matcher was read with
+the intent to test it: `SfxLibrary.find`'s category pass did
+`byCat.random().sounds.random()`, so a tag matching an *empty* category —
+`[mimicry]` with nothing recorded yet, exactly a new user's first experiment —
+threw `NoSuchElementException` and killed the line. The whole four-pass
+matching ladder (exact label → all-words-in-label → category → any-word) was
+also untestable behind a Context.
+
+**Shipped:** `SfxMatch` (pure, injectable Random) with the crash fixed — an
+empty category is skipped and the tag falls through to the loose pass.
+`SfxLibrary.find` is now a two-line shell. 7 tests: ladder precedence,
+singular/plural, the empty-category regression (both with and without a
+recording), quiet nulls for nonsense, and — against the real catalog.json —
+every one of the 467 labels and all 11 category keys must resolve, since the
+"Any <category> sound" picker inserts bare keys as tags.
+
+**Learned:** cycle 3's shadowed-variable find repeats: making code testable
+keeps finding bugs *before* the tests run. The crash lived in the one branch
+no happy path exercises — empty collections are where untested code goes to
+throw.
+
 ## Cycle 10 — the intelligibility contract is now law (v4.10, 2026-10-20)
 
 **Fault found:** the clear-mode clamps — the fix for the one fault Marcus ever

@@ -87,18 +87,8 @@ object SfxLibrary {
      * Matches sound names first, then whole categories; picks one at random so repeats vary.
      */
     fun find(context: Context, tag: String): Sfx? {
-        val words = tag.lowercase().split(Regex("[^a-z0-9]+")).filter { it.length > 1 }
-            .map { it.removeSuffix("s").ifEmpty { it } }
-        if (words.isEmpty()) return null
         val cats = listOf(SfxCategory(MimicStore.CATEGORY, "My Mimicry", "🦜", "", MimicStore.list(context))) + categories(context)
-        val exact = cats.flatMap { it.sounds }.filter { s -> s.label.lowercase().removeSuffix("s").trim() == tag.lowercase().removeSuffix("s").trim() }
-        if (exact.isNotEmpty()) return exact.random()
-        val byName = cats.flatMap { it.sounds }.filter { s -> val l = s.label.lowercase(); words.all { l.contains(it) } }
-        if (byName.isNotEmpty()) return byName.random()
-        val byCat = cats.filter { c -> val t = (c.key + " " + c.title + " " + c.desc).lowercase(); words.all { t.contains(it) } }
-        if (byCat.isNotEmpty()) return byCat.random().sounds.random()
-        val loose = cats.flatMap { it.sounds }.filter { s -> val l = s.label.lowercase(); words.any { l.contains(it) } }
-        return loose.randomOrNull()
+        return SfxMatch.find(cats, tag)
     }
 }
 
