@@ -3,6 +3,27 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 33 — the mimic store gets the clone treatment (v4.33, 2026-10-20)
+
+**Fault found:** cycle 32's closing lesson named the pattern
+(Context-only-for-filesDir keeping a storage layer untestable) — cycle 24's
+rule says a named pattern must be swept, and the sweep found its sibling
+immediately: `MimicStore`, holding the user's live table recordings, same
+pattern, zero lifecycle tests. Worse, cycle 27's recovery path (corrupted
+index → recover recordings) had only its pure helper tested, never the real
+flow.
+
+**Shipped:** `MimicStore` functions take a plain base directory (callers pass
+`filesDir`); `MimicStoreRoundTripTest` (4 tests) runs the full lifecycle on a
+temp dir: add→list round-trip, rename persisting and delete removing file and
+entry, a *corrupted index* recovering every recording and healing the index
+for the next read, and an orphaned wav recovered alongside indexed ones.
+
+**Learned:** the storage audit is complete: every byte the user can lose
+(clones, mimic recordings, saved lines, favorites, settings) is now written
+atomically, recovered when indexes fail, included in backups, and lifecycle
+tested. That axis is saturated — closing it deliberately.
+
 ## Cycle 32 — clone persistence under test (v4.32, 2026-10-20)
 
 **Fault found:** cycle 31 declared clones "the one thing that cannot be

@@ -138,7 +138,7 @@ class SoundsTab(private val act: MainActivity) {
         }
     }
 
-    private fun allSounds() = MimicStore.list(act) + categories.flatMap { it.sounds }
+    private fun allSounds() = MimicStore.list(act.filesDir) + categories.flatMap { it.sounds }
 
     private fun showCategory(key: String) {
         highlightChip(key)
@@ -151,7 +151,7 @@ class SoundsTab(private val act: MainActivity) {
                 act.sfx.preload(favs)
             }
             MimicStore.CATEGORY -> {
-                val mine = MimicStore.list(act)
+                val mine = MimicStore.list(act.filesDir)
                 header.text = "🦜 My Mimicry"
                 sub.text = "Kenku copy sounds they hear. Record a real sound or voice at the table and replay it, or put it in a line like [${mine.firstOrNull()?.label ?: "your sound name"}]."
                 fill(mine, showCategory = false, header = ui.button("● Record a new sound", Ui.Kind.PRIMARY) { recordMimic() }.apply { minHeight = ui.dp(56) })
@@ -256,7 +256,7 @@ class SoundsTab(private val act: MainActivity) {
             items += "✏️  Rename" to { renameMimic(s) }
             items += "🗑  Delete" to {
                 AlertDialog.Builder(act).setMessage("Delete “${s.label}”?")
-                    .setPositiveButton("Delete") { _, _ -> act.sfx.forget(s.id); MimicStore.delete(act, s); favorites.remove(s.id); saveFavs(); showCurrent() }
+                    .setPositiveButton("Delete") { _, _ -> act.sfx.forget(s.id); MimicStore.delete(act.filesDir, s); favorites.remove(s.id); saveFavs(); showCurrent() }
                     .setNegativeButton("Keep", null).show()
             }
         }
@@ -340,8 +340,8 @@ class SoundsTab(private val act: MainActivity) {
             dialog.setOnShowListener {
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                     val c = clip ?: run { act.toast("Record a sound first"); return@setOnClickListener }
-                    val label = name.text.toString().trim().take(40).ifBlank { "Mimic ${MimicStore.list(act).size + 1}" }
-                    try { MimicStore.add(act, label, c); act.toast("Saved “$label”") } catch (e: Exception) { act.toast("Couldn't save the sound") }
+                    val label = name.text.toString().trim().take(40).ifBlank { "Mimic ${MimicStore.list(act.filesDir).size + 1}" }
+                    try { MimicStore.add(act.filesDir, label, c); act.toast("Saved “$label”") } catch (e: Exception) { act.toast("Couldn't save the sound") }
                     dialog.dismiss()
                     showCategory(MimicStore.CATEGORY)
                 }
@@ -356,7 +356,7 @@ class SoundsTab(private val act: MainActivity) {
             .setView(ui.column().apply { setPadding(ui.dp(20), ui.dp(8), ui.dp(20), 0); addView(field) })
             .setPositiveButton("Save") { _, _ ->
                 val n = field.text.toString().trim().take(40)
-                if (n.isNotEmpty()) { MimicStore.rename(act, s, n); showCurrent() }
+                if (n.isNotEmpty()) { MimicStore.rename(act.filesDir, s, n); showCurrent() }
             }
             .setNegativeButton("Cancel", null).show()
     }

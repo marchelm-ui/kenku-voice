@@ -21,24 +21,24 @@ data class Sfx(val id: String, val label: String, val file: String, val seconds:
  */
 object MimicStore {
     const val CATEGORY = "mimic"
-    private fun dir(ctx: Context) = File(ctx.filesDir, "mimic").apply { mkdirs() }
-    private fun index(ctx: Context) = File(dir(ctx), "index.json")
+    private fun dir(base: File) = File(base, "mimic").apply { mkdirs() }
+    private fun index(base: File) = File(dir(base), "index.json")
 
-    fun list(ctx: Context): List<Sfx> {
+    fun list(base: File): List<Sfx> {
         val indexed = try {
-            val arr = JSONArray(index(ctx).readText())
+            val arr = JSONArray(index(base).readText())
             (0 until arr.length()).map { i ->
                 val o = arr.getJSONObject(i)
-                Sfx(o.getString("id"), o.getString("label"), File(dir(ctx), o.getString("id") + ".wav").absolutePath,
+                Sfx(o.getString("id"), o.getString("label"), File(dir(base), o.getString("id") + ".wav").absolutePath,
                     o.optDouble("dur", 1.0).toFloat(), CATEGORY)
             }.filter { File(it.file).exists() }
         } catch (e: Exception) { emptyList() }
         // Recordings the index forgot (a crash mid-save, a corrupted index) are
         // recovered from their wav files rather than silently vanishing.
-        val orphans = orphanEntries(indexed.map { it.id }.toSet(), dir(ctx).listFiles()?.toList() ?: emptyList())
+        val orphans = orphanEntries(indexed.map { it.id }.toSet(), dir(base).listFiles()?.toList() ?: emptyList())
         if (orphans.isEmpty()) return indexed
         val all = indexed + orphans
-        try { save(ctx, all) } catch (e: Exception) {}
+        try { save(base, all) } catch (e: Exception) {}
         return all
     }
 
@@ -51,26 +51,26 @@ object MimicStore {
                 (f.length() - 44).coerceAtLeast(0) / 2f / AudioDsp.RATE, CATEGORY)
         }
 
-    private fun save(ctx: Context, items: List<Sfx>) {
+    private fun save(base: File, items: List<Sfx>) {
         val arr = JSONArray()
         items.forEach { arr.put(JSONObject().put("id", it.id).put("label", it.label).put("dur", it.seconds.toDouble())) }
-        FileSafe.writeText(index(ctx), arr.toString())
+        FileSafe.writeText(index(base), arr.toString())
     }
 
-    fun add(ctx: Context, label: String, samples: FloatArray): Sfx {
+    fun add(base: File, label: String, samples: FloatArray): Sfx {
         val id = "mimic_" + System.currentTimeMillis()
-        val f = File(dir(ctx), "$id.wav")
+        val f = File(dir(base), "$id.wav")
         AudioDsp.writeWav(samples, f)
         val s = Sfx(id, label, f.absolutePath, samples.size / AudioDsp.RATE.toFloat(), CATEGORY)
-        save(ctx, list(ctx) + s)
+        save(base, list(base) + s)
         return s
     }
 
-    fun rename(ctx: Context, s: Sfx, label: String) = save(ctx, list(ctx).map { if (it.id == s.id) it.copy(label = label) else it })
+    fun rename(base: File, s: Sfx, label: String) = save(base, list(base).map { if (it.id == s.id) it.copy(label = label) else it })
 
-    fun delete(ctx: Context, s: Sfx) {
+    fun delete(base: File, s: Sfx) {
         File(s.file).delete()
-        save(ctx, list(ctx).filter { it.id != s.id })
+        save(base, list(base).filter { it.id != s.id })
     }
 }
 data class SfxCategory(val key: String, val title: String, val icon: String, val desc: String, val sounds: List<Sfx>)
@@ -105,7 +105,7 @@ object SfxLibrary {
      * Matches sound names first, then whole categories; picks one at random so repeats vary.
      */
     fun find(context: Context, tag: String): Sfx? {
-        val cats = listOf(SfxCategory(MimicStore.CATEGORY, "My Mimicry", "🦜", "", MimicStore.list(context))) + categories(context)
+        val cats = listOf(SfxCategory(MimicStore.CATEGORY, "My Mimicry", "🦜", "", MimicStore.list(context.filesDir))) + categories(context)
         return SfxMatch.find(cats, tag)
     }
 }
