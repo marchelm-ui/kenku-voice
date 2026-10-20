@@ -88,6 +88,8 @@ object Catalog {
         Style("hasty", "Quick", 1.0f, 1.1f, 1.0f, 1.3f),
         Style("child", "Young", 1.1f, 1.02f, 1.26f, 1.04f),
         Style("squeaky", "High", 1.14f, 1.03f, 1.45f, 1.08f),
+        Style("nervous", "Nervous", 1.04f, 1.08f, 1.1f, 1.25f),
+        Style("weary", "Tired & slow", 0.95f, 0.88f, 0.88f, 0.78f),
     )
 }
 

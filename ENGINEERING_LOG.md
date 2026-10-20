@@ -3,6 +3,25 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 37 — two new voices in the repertoire (v4.37, 2026-10-20)
+
+**Fault found:** the original brief asked for "as many options for voices as
+you can… many ranges," yet the style palette has sat at ten since before the
+clarity clamps existed — grown timidly, because before cycle 10 every new
+style risked the mush Marcus reported. The clamps and their tests turned that
+risk into arithmetic.
+
+**Shipped:** `nervous` ("Nervous": a touch high and quick, wilder when Wild is
+on) and `weary` ("Tired & slow": low and dragging). Both sit inside the clear
+clamps by design and by test — `StyleTuningTest` sweeps every catalog style ×
+50 seeds, so the additions were verified the moment they were written. Twelve
+styles now; the voices dialog, cast info and off-switches pick them up
+automatically.
+
+**Learned:** cycle 34's point, confirmed from another side: contracts turn
+frightening changes into boring ones. Content that was risky to touch before
+the clamps is now a two-line diff with a standing proof.
+
 ## Cycle 36 — and a restore to make the backup real (v4.36, 2026-10-20)
 
 **Fault found:** cycle 35 shipped half a feature — a backup nobody can open is
