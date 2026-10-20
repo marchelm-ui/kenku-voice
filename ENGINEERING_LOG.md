@@ -3,6 +3,26 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 30 — the unlistened-callback sweep (v4.30, 2026-10-20)
+
+**Fault found:** running cycle 29's closing lesson as an actual sweep found two
+more half-spoken protocols: both `MediaPlayer` uses (line playback, long sound
+effects) registered completion listeners but **no error listeners** — an async
+playback error (corrupt file, codec hiccup) strands the player object, leaves
+the Stop button visible, keeps other apps ducked, and for a looping sound
+leaves its tile lit forever.
+
+**Shipped:** `setOnErrorListener` on both: release the player, clear the
+id→player bookkeeping, fire the same completion path (onDone / onChange) so UI
+and audio focus recover exactly as if the sound had ended. Swept the rest:
+SoundPool's load listener already handles failed status, AudioRecord and the
+sync MediaCodec loop have no callback halves, the mic permission callback is
+paired. The sweep is complete as of today.
+
+**Learned:** a lesson written in the log is advice; a lesson *run as a sweep
+before the ink dries* is a fix. Cycle 24 learned this about fault classes,
+cycle 30 about lessons themselves.
+
 ## Cycle 29 — the kenku yields to a phone call (v4.29, 2026-10-20)
 
 **Fault found:** the app *requests* audio focus (so other apps duck while the

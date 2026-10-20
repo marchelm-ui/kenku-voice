@@ -212,6 +212,10 @@ class SfxPlayer(private val context: Context) {
             if (players[s.id] === done) { players.remove(s.id); looping.remove(s.id) }
             release(done); onChange?.invoke()
         }
+        mp.setOnErrorListener { bad, _, _ ->
+            if (players[s.id] === bad) { players.remove(s.id); looping.remove(s.id) }
+            release(bad); onChange?.invoke(); true
+        }
         players[s.id] = mp
         if (loop) looping.add(s.id)
         mp.start()

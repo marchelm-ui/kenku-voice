@@ -180,6 +180,9 @@ class MainActivity : AppCompatActivity() {
                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
                 setDataSource(f.absolutePath)
                 setOnCompletionListener { mp -> mp.release(); if (player === mp) player = null; onDone?.invoke() }
+                // An async error must release the player and fire onDone, or the Stop
+                // button and the ducked audio focus stay stuck.
+                setOnErrorListener { mp, _, _ -> mp.release(); if (player === mp) player = null; onDone?.invoke(); true }
                 prepare(); start()
             }
         } catch (e: Exception) {
