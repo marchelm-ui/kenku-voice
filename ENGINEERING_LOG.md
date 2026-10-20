@@ -3,6 +3,26 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 23 — failure never eats the typed line (v4.23, 2026-10-20)
+
+**Fault found:** `submit()` cleared the text box the moment the Say button was
+hit — before the line was actually made. A generation failure then destroyed
+the typed text along with it: mid-game, the worst possible moment to retype a
+speech. Also checked dependency freshness while hunting: sherpa-onnx 1.13.8 is
+the current latest, nothing to bump. And long pastes were silently truncated
+at 600 characters, mid-word.
+
+**Shipped:** on a failed *new* line, the typed text is restored into the box
+(cursor at the end) alongside the error message — stopping a line on purpose
+still clears, failure never does. Long input is now capped at a word boundary
+with a toast saying how many words will be spoken. The failure path itself is
+pinned by cycle 22's `PerformerTest`; the restore is two lines of UI glue on
+top of it.
+
+**Learned:** destructive UI actions (clearing input) should happen on
+*success*, or be reversible on failure — optimistic clearing is only polite
+when nothing can go wrong downstream, and something always can.
+
 ## Cycle 22 — the whole performance runs under test (v4.22, 2026-10-20)
 
 **Fault found:** every *unit* of the pipeline was tested (chunker, stitcher,

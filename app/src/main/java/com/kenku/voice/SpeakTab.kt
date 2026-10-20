@@ -465,8 +465,11 @@ class SpeakTab(private val act: MainActivity) {
     // ---------- actions ----------
 
     private fun submit() {
-        val text = input.text.toString().replace(Regex("\\s+"), " ").trim().take(600)
-        if (text.isEmpty() || busy || !act.voicesReady) return
+        val raw = input.text.toString().replace(Regex("\\s+"), " ").trim()
+        if (raw.isEmpty() || busy || !act.voicesReady) return
+        // Cap long pastes at a word boundary, and say so instead of trimming silently.
+        val text = if (raw.length <= 600) raw else raw.take(600).substringBeforeLast(' ').ifBlank { raw.take(600) }
+        if (text.length < raw.length) act.toast("Long speech — speaking the first ${text.split(' ').size} words.")
         input.setText("")
         record(Line(System.currentTimeMillis().toString(), text, ""), isNew = true)
     }
@@ -514,6 +517,8 @@ class SpeakTab(private val act: MainActivity) {
                     setBusy(false, if (e.message?.contains("Cloning") == true)
                         "A cloned voice couldn't load. Untick it in the Clones tab and try again."
                     else "Couldn't make that line. Try plain words and avoid unusual symbols.")
+                    // A new line that failed must not take the typed text down with it.
+                    if (isNew && input.text.isNullOrBlank()) { input.setText(line.text); input.setSelection(line.text.length) }
                 }
             }
         }
