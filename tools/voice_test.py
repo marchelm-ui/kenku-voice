@@ -9,7 +9,7 @@ Checks:
      a few seconds and is generated faster than it plays (so streaming never stalls).
 Writes kenku-sample.wav (a full kenku line including a cloned voice) for listening.
 """
-import random, sys, time, wave
+import os, random, sys, time, wave
 import numpy as np
 import sherpa_onnx
 
@@ -37,54 +37,6 @@ def pocket():
 
 def rms(x):
     return float(np.sqrt(np.mean(np.square(x)))) if len(x) else 0.0
-
-
-# ---- the app's chunker (same rules as Chunker.kt) ----
-LEANERS = set("""a an the my your his her its our their this that these those of to in on at for with from by into onto
-upon about over under and or but nor so if than as is are was were be been am will would can could shall should must
-may might do does did not no very too i we you he she they it i'm you're we're they're it's don't can't won't some any
-every each all one two three who what where when why how which whose has have had just before after behind through
-across against between without within around toward towards near like since until till while because via per really
-quite more most less such""".split())
-
-
-def split(text):
-    words = text.split()
-    if len(words) <= 3:
-        return [words]
-    cost = []
-    for w in words:
-        bare = w.lower().strip('"\'()*').rstrip('.,!?;:')
-        end = w.rstrip('"\')*')[-1:]
-        c = -4 if end in ".!?" else -3 if end in ",;:" else 3 if bare in LEANERS else 0
-        cost.append(c + random.uniform(-0.6, 0.6))
-    n = len(words)
-    best = [float("inf")] * (n + 1); frm = [-1] * (n + 1); best[0] = 0
-    for e in range(1, n + 1):
-        for size in (2, 3, 1, 4):
-            s = e - size
-            if s < 0 or best[s] == float("inf"):
-                continue
-            c = best[s] + (0 if e == n else cost[e - 1]) + {1: 6, 4: 2.2}.get(size, 0)
-            if c < best[e]:
-                best[e], frm[e] = c, s
-    b, e = [], n
-    while e > 0:
-        b.append(e); e = frm[e]
-    b.reverse()
-    out, s = [], 0
-    for x in b:
-        out.append(words[s:x]); s = x
-    return out
-
-
-def spoken(words, last):
-    t = " ".join(words)
-    if t[-1] in ".!?":
-        return t
-    if t[-1] in ",;:":
-        return t.rstrip(",;:") + ","
-    return t + ("." if last else ",")
 
 
 def trim(x, thr=0.012):
@@ -156,21 +108,21 @@ print(f"clone sample {len(c) / RATE:.2f}s rms {rms(c):.3f}")
 assert len(c) / RATE > 0.8 and rms(c) > 0.01, "cloning produced no speech"
 
 # 3. 50-word line, streamed like the app
-line = ("You owe us gold, the tavern keeper said so. Pay now, little bird, or the guards hear everything. "
-        "We saw the captain at the docks tonight, and he swore he would find the thief before the morning bells. "
-        "Run quickly through the market and hide the map.")
-assert len(line.split()) <= 50
+fixture = [l.strip() for l in open(os.path.join(os.path.dirname(__file__), "benchmark_chunks.txt"))
+           if l.strip() and not l.startswith("#")]
+line_words = sum(len(c.rstrip('.,;:').split()) for c in fixture)
+assert line_words <= 50
 random.seed(7)
-chunks = split(line)
-print("chunks:", [" ".join(w) for w in chunks])
+chunks = fixture
+print("chunks:", chunks)
 pieces, gen, audio, first = [], 0.0, 0.0, None
 start = time.time()
 for i, w in enumerate(chunks):
     t0 = time.time()
     if i % 5 == 2:
-        a = pt.generate(spoken(w, i == len(chunks) - 1), g)
+        a = pt.generate(w, g)
     else:
-        a = kt.generate(spoken(w, i == len(chunks) - 1), sid=random.randrange(54), speed=random.choice([0.92, 1.0, 1.06]))
+        a = kt.generate(w, sid=random.randrange(54), speed=random.choice([0.92, 1.0, 1.06]))
     x = match(trim(np.array(a.samples, dtype=np.float32)))
     gen += time.time() - t0
     audio += len(x) / RATE

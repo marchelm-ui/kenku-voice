@@ -3,6 +3,23 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 4 — the Python chunker mirror is dead (v4.5, 2026-10-20)
+
+**Fault found:** `tools/voice_test.py` carried a hand-written Python copy of the
+Kotlin chunker (leaner list, DP splitter, spoken-text rules) purely to build the
+CI benchmark line. Cycle 1 flagged the drift risk; cycle 1's own quote fix had
+already made the copies diverge.
+
+**Shipped:** the benchmark now reads `tools/benchmark_chunks.txt`, a committed
+fixture of the line exactly as the app chunks it. ~45 lines of mirror deleted.
+`FixtureSanityTest` (3 tests) guards the fixture: it must say exactly the
+benchmark text, be shaped by the app's own punctuation/size rules, and the real
+Chunker must agree across seeds. The DSP mirror (`trim`/`match`) remains, by
+design: it gates the models, and the Kotlin DSP has its own JVM tests.
+
+**Learned:** when two languages must agree, don't synchronize code — commit the
+*artifact* one side produces and make both sides answer to it.
+
 ## Cycle 3 — the stitcher becomes pure and tested (v4.4, 2026-10-20)
 
 **Fault found:** the crossfade/gap assembly — the single most audible piece of
@@ -63,7 +80,6 @@ Python side is the authority on the models.
 - Self-scheduled loop: a wake-up fires every 5 hours; each cycle picks the top
   backlog item, ships it gated, logs here, and re-arms the next wake-up.
 - targetSdk 36 + edge-to-edge layout (required for any future Play release).
-- Eliminate the Python/Kotlin chunker mirror drift (golden fixtures both read).
 - Accessibility audit: TalkBack labels exist, but ordering/grouping untested.
 - Phrasebook lines could feed Quick lines directly ("pin a phrase").
 - Clone quality meter: warn when a sample is too noisy before saving.

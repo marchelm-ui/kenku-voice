@@ -1,0 +1,24 @@
+# The canonical chunking of the benchmark line, exactly as the app's Kotlin
+# Chunker produced it on CI (build 21). voice_test.py reads this file instead
+# of re-implementing the chunker in Python — the mirror that could drift is gone.
+# FixtureSanityTest guards this file against the real Chunker's rules.
+# text: You owe us gold, the tavern keeper said so. Pay now, little bird, or the guards hear everything. We saw the captain at the docks tonight, and he swore he would find the thief before the morning bells. Run quickly through the market and hide the map.
+You owe,
+us gold,
+the tavern keeper,
+said so.
+Pay now,
+little bird,
+or the guards,
+hear everything.
+We saw,
+the captain,
+at the docks tonight,
+and he swore,
+he would find,
+the thief,
+before the morning bells.
+Run quickly,
+through the market,
+and hide,
+the map.
