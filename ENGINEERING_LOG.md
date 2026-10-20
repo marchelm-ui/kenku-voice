@@ -14,11 +14,13 @@ person at the mic.
 
 **Shipped:** backup rules in both formats (pre-12 `backup_rules.xml`, 12+
 `data_extraction_rules.xml` covering cloud backup and device-to-device
-transfer): clones, mimic recordings, the lines index and settings go in; the
-bulk line audio stays out (it regenerates on first tap). `BackupRulesTest`
-(3 tests) pins both formats in lockstep — same includes, same excludes, for
-cloud and transfer alike — and that the manifest actually references both
-files.
+transfer): clones, mimic recordings, the lines index and settings are
+whitelisted; the bulk line audio stays out by not being listed (it regenerates
+on first tap). First push carried a redundant `<exclude>` alongside the
+includes — lintVital rejected it (an include list *is* the whitelist), which is
+the zero-warning gate catching its author mid-cycle. `BackupRulesTest` (3
+tests) pins both formats in lockstep for cloud and transfer alike, that the
+bulk dir is never whitelisted, and that the manifest references both files.
 
 **Learned:** a default left unconfigured is still a decision — here,
 "allowBackup=true" silently decided that backups fail. The quota failure mode

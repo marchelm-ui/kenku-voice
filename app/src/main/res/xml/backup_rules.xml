@@ -7,5 +7,4 @@
     <include domain="file" path="mimic" />
     <include domain="file" path="lines.json" />
     <include domain="sharedpref" path="kenku.xml" />
-    <exclude domain="file" path="lines" />
 </full-backup-content>

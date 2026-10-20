@@ -7,13 +7,11 @@
         <include domain="file" path="mimic" />
         <include domain="file" path="lines.json" />
         <include domain="sharedpref" path="kenku.xml" />
-        <exclude domain="file" path="lines" />
-    </cloud-backup>
+        </cloud-backup>
     <device-transfer>
         <include domain="file" path="clones" />
         <include domain="file" path="mimic" />
         <include domain="file" path="lines.json" />
         <include domain="sharedpref" path="kenku.xml" />
-        <exclude domain="file" path="lines" />
-    </device-transfer>
+        </device-transfer>
 </data-extraction-rules>

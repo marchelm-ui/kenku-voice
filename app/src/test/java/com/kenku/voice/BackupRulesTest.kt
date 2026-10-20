@@ -37,8 +37,10 @@ class BackupRulesTest {
         return collect("include") to collect("exclude")
     }
 
+    // With any <include> present the rules are a whitelist: the bulk line audio is
+    // out because it is not listed, and lint forbids a redundant <exclude> for it.
     private val mustInclude = setOf("file:clones", "file:mimic", "file:lines.json", "sharedpref:kenku.xml")
-    private val mustExclude = setOf("file:lines")
+    private val mustExclude = emptySet<String>()
 
     @Test
     fun `legacy backup rules keep the irreplaceable and drop the bulk`() {
@@ -46,6 +48,7 @@ class BackupRulesTest {
         val (inc, exc) = rules(doc.documentElement)
         assertEquals(mustInclude, inc)
         assertEquals(mustExclude, exc)
+        assertTrue("the bulk lines/ dir must never be whitelisted", inc.none { it == "file:lines" })
     }
 
     @Test
