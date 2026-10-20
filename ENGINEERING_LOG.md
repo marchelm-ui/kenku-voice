@@ -3,6 +3,25 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 32 — clone persistence under test (v4.32, 2026-10-20)
+
+**Fault found:** cycle 31 declared clones "the one thing that cannot be
+re-made" — yet their persistence code (`CloneStore`) had zero tests, kept
+untestable by a `Context` parameter it only used for `filesDir`. The most
+irreplaceable data in the app was guarded by backup rules and by nothing else.
+
+**Shipped:** `CloneStore(baseDir: File)` — the activity passes `filesDir`, JVM
+tests pass a temp dir; nothing else changed. `CloneStoreRoundTripTest` (5
+tests) pins create→list round-trip of name/mix/duration/audio, save persisting
+renames and mix state across store instances, a corrupted info.json keeping
+the voice and losing only its name, delete removing files, and a strayed
+directory without a sample staying unlisted.
+
+**Learned:** when a cycle's own write-up calls something irreplaceable, that
+sentence is a test requirement. The `Context`-only-for-`filesDir` pattern is
+the cheapest seam there is — one parameter type swap and a storage layer
+becomes testable.
+
 ## Cycle 31 — a new phone inherits the kenku (v4.31, 2026-10-20)
 
 **Fault found:** `allowBackup="true"` with no rules meant Android tried to back

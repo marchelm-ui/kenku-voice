@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         ui = Ui(this)
         engine = VoiceEngine.get(this)
         performer = Performer(engine)
-        clones = CloneStore(applicationContext)
+        clones = CloneStore(applicationContext.filesDir)
         sfx = SfxPlayer(applicationContext)
 
         speak = SpeakTab(this)

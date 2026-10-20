@@ -28,9 +28,13 @@ class Clone(val id: String, var name: String, var inMix: Boolean, private val di
     val seconds: Float get() = (sampleFile.length() - 44).coerceAtLeast(0) / 2f / AudioDsp.RATE
 }
 
-/** Saved clones live in the app's private folder: clones/<id>/sample.wav + info.json. */
-class CloneStore(context: Context) {
-    private val root = File(context.filesDir, "clones").apply { mkdirs() }
+/**
+ * Saved clones live in the app's private folder: clones/<id>/sample.wav + info.json.
+ * Rooted on a plain directory (the app passes filesDir), so the persistence of the
+ * most irreplaceable data in the app runs under JVM tests.
+ */
+class CloneStore(baseDir: File) {
+    private val root = File(baseDir, "clones").apply { mkdirs() }
 
     fun list(): List<Clone> = (root.listFiles() ?: emptyArray())
         .filter { it.isDirectory && File(it, "sample.wav").exists() }
