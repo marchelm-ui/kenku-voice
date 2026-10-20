@@ -1,5 +1,6 @@
 package com.kenku.voice
 
+import androidx.core.content.edit
 import android.graphics.Typeface
 import android.text.Editable
 import android.text.InputType
@@ -66,7 +67,7 @@ class SoundsTab(private val act: MainActivity) {
             setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) { act.sfx.volume = p / 100f }
                 override fun onStartTrackingTouch(sb: SeekBar?) {}
-                override fun onStopTrackingTouch(sb: SeekBar?) { act.prefs.edit().putFloat("sfx_vol", act.sfx.volume).apply() }
+                override fun onStopTrackingTouch(sb: SeekBar?) { act.prefs.edit { putFloat("sfx_vol", act.sfx.volume) } }
             })
         }, ui.weight())
         volRow.addView(ui.body("🔊", 18f, R.color.ink))
@@ -119,7 +120,7 @@ class SoundsTab(private val act: MainActivity) {
             setPadding(ui.dp(12), ui.dp(8), ui.dp(12), ui.dp(8))
             isClickable = true; isFocusable = true
             contentDescription = "$title sounds"
-            setOnClickListener { v -> ui.tick(v); search.setText(""); selected = key; act.prefs.edit().putString("sfx_cat", key).apply(); showCategory(key) }
+            setOnClickListener { v -> ui.tick(v); search.setText(""); selected = key; act.prefs.edit { putString("sfx_cat", key) }; showCategory(key) }
         }
         chip.addView(TextView(act).apply { text = icon; textSize = 26f; gravity = Gravity.CENTER })
         chip.addView(TextView(act).apply { text = title; textSize = 13f; setTypeface(typeface, Typeface.BOLD); gravity = Gravity.CENTER; maxLines = 2 })
@@ -278,7 +279,7 @@ class SoundsTab(private val act: MainActivity) {
         if (selected == FAV && search.text.isNullOrBlank()) showCategory(FAV)
     }
 
-    private fun saveFavs() { act.prefs.edit().putStringSet("sfx_fav", HashSet(favorites)).apply() }
+    private fun saveFavs() { act.prefs.edit { putStringSet("sfx_fav", HashSet(favorites)) } }
 
     // ---------- Mimicry recording ----------
 

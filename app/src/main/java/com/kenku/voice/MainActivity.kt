@@ -1,5 +1,6 @@
 package com.kenku.voice
 
+import androidx.core.content.edit
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -142,7 +143,7 @@ class MainActivity : AppCompatActivity() {
 
     fun select(i: Int) {
         current = i
-        prefs.edit().putInt("tab", i).apply()
+        prefs.edit { putInt("tab", i) }
         tabViews.forEachIndexed { k, v -> v.visibility = if (k == i) View.VISIBLE else View.GONE }
         tabButtons.forEachIndexed { k, b ->
             val on = k == i

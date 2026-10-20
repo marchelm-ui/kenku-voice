@@ -1,5 +1,6 @@
 package com.kenku.voice
 
+import androidx.core.content.edit
 import android.content.Intent
 import android.graphics.Typeface
 import android.text.InputType
@@ -62,7 +63,7 @@ class SpeakTab(private val act: MainActivity) {
     // ---------- voice choices ----------
 
     private fun offSet(key: String): Set<String> = act.prefs.getStringSet(key, emptySet()) ?: emptySet()
-    private fun setOff(key: String, v: Set<String>) { act.prefs.edit().putStringSet(key, HashSet(v)).apply() }
+    private fun setOff(key: String, v: Set<String>) { act.prefs.edit { putStringSet(key, HashSet(v)) } }
     private val mixMode get() = act.prefs.getString("mix", "all") ?: "all"
     private val smooth get() = act.prefs.getBoolean("smooth", true)
     private val wild get() = act.prefs.getBoolean("wild", false)
@@ -337,7 +338,7 @@ class SpeakTab(private val act: MainActivity) {
             .setView(ScrollView(act).apply { addView(body) })
             .setPositiveButton("Done") { _, _ ->
                 setOff("off_accents", offA); setOff("off_styles", offS)
-                act.prefs.edit().putString("mix", mode).putBoolean("smooth", smoothOn).putBoolean("wild", wildOn).putBoolean("awake", awakeOn).putString("effect", effectKey).apply()
+                act.prefs.edit { putString("mix", mode); putBoolean("smooth", smoothOn); putBoolean("wild", wildOn); putBoolean("awake", awakeOn); putString("effect", effectKey) }
                 act.applyKeepAwake()
                 updateCastInfo()
             }
