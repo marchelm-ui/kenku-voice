@@ -132,8 +132,20 @@ class SfxPlayer(private val context: Context) {
 
     private fun usesPool(s: Sfx, loop: Boolean) = !loop && s.seconds <= 5f
 
-    /** Decodes short sounds ahead of time (e.g. the category on screen) so the first tap is instant. */
+    /**
+     * Decodes short sounds ahead of time (the category on screen) so the first tap is
+     * instant — and drops decoded sounds from other screens, so browsing all eleven
+     * categories can never pile hundreds of PCM buffers in memory next to the voice model.
+     */
     fun preload(sounds: List<Sfx>) {
+        val showing = sounds.map { it.id }.toSet()
+        for (id in SfxCache.toEvict(loaded.keys, showing, poolStreams.keys)) {
+            loaded.remove(id)?.let { sample ->
+                pool.unload(sample)
+                ready.remove(sample)
+                pendingPlay.remove(sample)
+            }
+        }
         sounds.filter { usesPool(it, false) && it.id !in loaded }.forEach { s ->
             try { loaded[s.id] = load(s) } catch (e: Exception) {}
         }

@@ -3,6 +3,25 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 17 — the sound cache stops growing forever (v4.17, 2026-10-20)
+
+**Fault found:** `SfxPlayer.preload` decoded each on-screen category into
+SoundPool and *never evicted anything* except on delete. Browsing all eleven
+categories in one session accumulates ~460 decoded PCM buffers in memory — next
+to a 310 MB voice model on a phone. Unbounded growth, invisible until the OS
+kills the app mid-game.
+
+**Shipped:** preload now evicts every decoded sound that is neither in the
+category coming on screen nor currently playing (`SfxCache.toEvict`, pure),
+also clearing its ready/pending bookkeeping. 4 tests pin the invariants:
+switching categories drops the old one, a playing sound is never cut, re-showing
+the same category evicts nothing, and a simulated browse of all 11 categories
+keeps the cache bounded to one category plus playing sounds.
+
+**Learned:** every cache needs a story for how things *leave* it, told at the
+moment it's written. This one's story was "the user deletes a recording" —
+true for one sound in five hundred.
+
 ## Cycle 16 — search stops rebuilding the world per keystroke (v4.16, 2026-10-20)
 
 **Fault found:** the saved-lines search rebuilt every card view on *every
