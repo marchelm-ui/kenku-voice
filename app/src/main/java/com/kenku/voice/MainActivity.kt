@@ -1,6 +1,7 @@
 package com.kenku.voice
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.media.AudioAttributes
@@ -56,6 +57,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        CrashReporter.install(this)
         ui = Ui(this)
         engine = VoiceEngine.get(this)
         performer = Performer(engine)
@@ -81,6 +83,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(root)
         select(prefs.getInt("tab", 0).coerceIn(0, 2))
         applyKeepAwake()
+        offerCrashReport()
 
         engineThread.execute {
             val error = try { engine.load(); null } catch (e: Throwable) { e }
@@ -94,6 +97,21 @@ class MainActivity : AppCompatActivity() {
                 if (voicesReady && clones.list().isNotEmpty()) engineThread.execute { engine.loadPocket() }
             }
         }
+    }
+
+    /** After a crash, offer to share the saved report so the fault can actually get fixed. */
+    private fun offerCrashReport() {
+        val report = CrashReporter.pending(this) ?: return
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Mocking Bird hit a problem last time")
+            .setMessage("A crash report was saved (no personal data, just what the app was doing). Share it with the developer so it can be fixed?")
+            .setPositiveButton("Share") { _, _ ->
+                try { startActivity(Intent.createChooser(CrashReporter.shareIntent(report), "Send crash report")) } catch (e: Exception) {}
+                CrashReporter.clear(this)
+            }
+            .setNegativeButton("Delete") { _, _ -> CrashReporter.clear(this) }
+            .setCancelable(true)
+            .show()
     }
 
     private fun tabBar(): View {

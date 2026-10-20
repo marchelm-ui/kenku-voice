@@ -131,14 +131,21 @@ def match(x, target=0.105):
 t = time.time(); kt = kokoro(); print(f"kokoro load {time.time() - t:.1f}s, speakers {kt.num_speakers}")
 assert kt.num_speakers >= 54
 
-# 1. every voice
-bad = []
+# 1. every voice speaks, and after the clarity chain lands in the table-loudness band.
+bad, loudness_outliers, levels = [], [], []
 for sid in range(54):
     a = np.array(kt.generate("Squawk! You owe us gold, friend.", sid=sid, speed=1.0).samples, dtype=np.float32)
     if len(a) / RATE < 0.8 or rms(a) < 0.01:
         bad.append(sid)
+        continue
+    v = vrms(match(trim(a)))
+    levels.append(v)
+    if not (0.075 <= v <= 0.135):
+        loudness_outliers.append((sid, round(float(v), 3)))
 print("voices checked: 54, broken:", bad)
+print(f"loudness after polish: min {min(levels):.3f} max {max(levels):.3f} target 0.105, outliers: {loudness_outliers}")
 assert not bad, f"broken voices {bad}"
+assert not loudness_outliers, f"voices outside the loudness band {loudness_outliers}"
 
 # 2. cloning
 t = time.time(); pt = pocket(); print(f"pocket load {time.time() - t:.1f}s")
@@ -175,7 +182,9 @@ print(f"50-word line: {len(chunks)} snippets, {audio:.1f}s audio, generated in {
 # Streaming starts once the rest can be made before playback catches up.
 wait = max(first, gen * 1.15 - audio + first)
 print(f"estimated wait before speaking: {wait:.2f}s")
-assert wait < 6.0, "too slow to reply within seconds"
+assert wait < 3.0, "too slow to reply within seconds"
+# Speed budget: generation must stay comfortably faster than real time, or streaming stalls.
+assert rtf < 0.85, f"generation too slow (RTF {rtf:.2f}, budget 0.85)"
 
 pcm = (np.clip(np.concatenate(pieces), -1, 1) * 32767).astype("<i2")
 with wave.open(OUT, "wb") as w:
