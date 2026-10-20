@@ -3,6 +3,35 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 41 — five new textures and an adjustable patter (v4.41, 2026-10-20)
+
+**Requested by Marcus:** weirder whole-line sound options ("stereogram,
+glitched…") and control over how often the voice switches ("every word, every
+sentence, or adjust how many words").
+
+**Shipped:**
+- Five new voice textures beside Cave/Distant/Memory: **Glitched** (stutter
+  repeats, dropouts, bit-crushed moments), **Phantom chorus** (two slowly
+  detuned ghost copies — the closest a mono phone speaker gets to a
+  stereogram's shimmer), **Old radio** (narrow band, AM flutter, hiss, pops),
+  **Underwater** (heavy muffle, slow pitch wobble, swell) and **Clockwork**
+  (ring-mod + comb, a brass construct). All stateful and streaming-safe, all
+  seeded per-instance so they are test-deterministic. 5 new effect tests pin
+  boundedness, energy, streamed stability, spectral signatures (underwater
+  muffles, clockwork moves energy into sidebands, radio drops the rumble),
+  glitch determinism, and clean endings.
+- **Voice switching cadence** in the Voices dialog: Every word / Every 2–3
+  words (default, unchanged) / Every 4–6 words / Every sentence — wired
+  through `Cadence` → `Performer.Options` → `Chunker.split`, with the DP
+  splitter parameterized per cadence. 6 cadence tests plus 2 Performer
+  passthroughs pin losslessness, size bounds, sentence boundaries, tag
+  placement and the default staying identical.
+
+**Learned:** the stereogram ask met a mono speaker — translating intent
+("make it sound uncanny") beats refusing the literal word. And the cadence
+knob fell out almost free because the splitter was already a parameterized
+DP under contract tests.
+
 ## Cycle 40 — features stop stepping on each other (v4.40, 2026-10-20)
 
 **Fault found:** a cross-feature interaction born two cycles ago: `share(line)`

@@ -121,6 +121,28 @@ class PerformerTest {
     }
 
     @Test
+    fun `word cadence voices every single word`() {
+        val sink = FakeSink()
+        val text = "Pay the toll little bird"
+        val res = performer(source(), sink).perform(
+            text, Performer.Options(listOf(builtin(0), builtin(1)), listOf(Catalog.styles.first()),
+                smooth = true, cadence = Cadence.WORD),
+            outFile(), onProgress = { _, _ -> }, onStarted = {}, onPlaybackDone = {})
+        assertEquals(text.split(" ").size, res.parts.size)
+    }
+
+    @Test
+    fun `sentence cadence gives one voice per sentence`() {
+        val sink = FakeSink()
+        val res = performer(source(), sink).perform(
+            "Pay the toll. Or face the watch. Run!",
+            Performer.Options(listOf(builtin(0), builtin(1)), listOf(Catalog.styles.first()),
+                smooth = true, cadence = Cadence.SENTENCE),
+            outFile(), onProgress = { _, _ -> }, onStarted = {}, onPlaybackDone = {})
+        assertEquals(3, res.parts.size)
+    }
+
+    @Test
     fun `an empty line is refused up front`() {
         try {
             performer(source(), FakeSink()).perform("   ", opts(builtin(0)), outFile(),

@@ -8,6 +8,18 @@ import kotlin.random.Random
  * dangling "the", "of" or "to" at the end of a snippet. Picks vary a little each
  * time so the same line never comes out identically.
  */
+/** How many words each stolen voice speaks before the next takes over. */
+enum class Cadence(val key: String, val label: String, val detail: String) {
+    WORD("word", "Every word", "Maximum mimicry — a new voice on every single word"),
+    SHORT("short", "Every 2–3 words", "The classic kenku patter"),
+    LONG("long", "Every 4–6 words", "Calmer switches, easier to follow"),
+    SENTENCE("sentence", "Every sentence", "One voice speaks each whole sentence");
+
+    companion object {
+        fun of(key: String?) = entries.firstOrNull { it.key == key } ?: SHORT
+    }
+}
+
 object Chunker {
 
     /** A snippet of speech, or (when [sound] is set) a mimicked sound effect like [coins]. */
@@ -51,25 +63,35 @@ object Chunker {
     private val tagRegex = Regex("\\[([^\\]]{1,40})]")
 
     /** Splits a line, keeping [sound] tags as their own snippets in place. */
-    fun split(text: String, random: Random = Random.Default): List<Chunk> {
+    fun split(text: String, random: Random = Random.Default, cadence: Cadence = Cadence.SHORT): List<Chunk> {
         val out = mutableListOf<Chunk>()
         var pos = 0
         for (m in tagRegex.findAll(text)) {
-            out += splitSpeech(text.substring(pos, m.range.first), random)
+            out += splitSpeech(text.substring(pos, m.range.first), random, cadence)
             val tag = m.groupValues[1].trim()
             if (tag.isNotEmpty()) out += Chunk(emptyList(), false, tag)
             pos = m.range.last + 1
         }
-        out += splitSpeech(text.substring(pos), random)
+        out += splitSpeech(text.substring(pos), random, cadence)
         // Only the final speech snippet should sound like the end of a sentence.
         val lastSpeech = out.indexOfLast { it.sound == null }
         return out.mapIndexed { i, c -> if (c.sound == null) c.copy(isLast = i == lastSpeech) else c }
     }
 
-    private fun splitSpeech(text: String, random: Random): List<Chunk> {
+    private fun splitSpeech(text: String, random: Random, cadence: Cadence): List<Chunk> {
         val words = text.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
         if (words.isEmpty()) return emptyList()
-        if (words.size <= 3) return listOf(Chunk(words, true))
+        when (cadence) {
+            Cadence.WORD -> return words.map { Chunk(listOf(it), true) }
+            Cadence.SENTENCE -> return bySentence(words)
+            else -> {}
+        }
+        // SHORT prefers 2–3 word snippets; LONG prefers 4–6.
+        val plainMax = if (cadence == Cadence.LONG) 6 else 3
+        val sizes = if (cadence == Cadence.LONG) intArrayOf(4, 5, 3, 6, 2) else intArrayOf(2, 3, 1, 4)
+        val sizePenalties = if (cadence == Cadence.LONG) mapOf(3 to 2.0, 6 to 1.0, 2 to 5.0)
+        else mapOf(1 to 6.0, 4 to 2.2)
+        if (words.size <= plainMax) return listOf(Chunk(words, true))
 
         // Cost of breaking right after word i (lower is better).
         val breakCost = DoubleArray(words.size) { i ->
@@ -87,16 +109,16 @@ object Chunker {
             c
         }
 
-        // Dynamic programming over snippet sizes 2 or 3 (a single word only if forced).
+        // Dynamic programming over the cadence's preferred snippet sizes.
         val n = words.size
         val best = DoubleArray(n + 1) { Double.MAX_VALUE }
         val from = IntArray(n + 1) { -1 }
         best[0] = 0.0
         for (end in 1..n) {
-            for (size in intArrayOf(2, 3, 1, 4)) {
+            for (size in sizes) {
                 val start = end - size
                 if (start < 0 || best[start] == Double.MAX_VALUE) continue
-                val sizePenalty = when (size) { 1 -> 6.0; 4 -> 2.2; else -> 0.0 }
+                val sizePenalty = sizePenalties[size] ?: 0.0
                 val cut = if (end == n) 0.0 else breakCost[end - 1]
                 val cost = best[start] + cut + sizePenalty
                 if (cost < best[end]) { best[end] = cost; from[end] = start }
@@ -113,5 +135,18 @@ object Chunker {
             s = b
         }
         return chunks
+    }
+
+    /** One chunk per sentence: a new chunk after every word ending in sentence punctuation. */
+    private fun bySentence(words: List<String>): List<Chunk> {
+        val out = mutableListOf<Chunk>()
+        val cur = mutableListOf<String>()
+        for (w in words) {
+            cur.add(w)
+            val end = w.trimEnd('"', '\'', '”', '’', ')', ']', '*').lastOrNull()
+            if (end != null && (end in ".!?" || end == '…')) { out.add(Chunk(cur.toList(), true)); cur.clear() }
+        }
+        if (cur.isNotEmpty()) out.add(Chunk(cur.toList(), true))
+        return out
     }
 }

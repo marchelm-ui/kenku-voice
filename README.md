@@ -10,8 +10,10 @@ snippets and each one is spoken by a different stolen voice (54 voices across 9
 accents, 12 speaking styles), blended together and streamed so it starts talking
 in under a second. **＋ Add** drops in phrases from the 📜 phrasebook (85 ready
 lines in 10 situations, each pinnable straight to the Quick row) or sound effects
-mid-sentence (for example `Pay up [coins] or else`). Optional voice effects: Cave
-echo, Distant, Old memory. Every line is saved for instant replay, re-voicing,
+mid-sentence (for example `Pay up [coins] or else`). Eight voice textures: Cave
+echo, Distant, Old memory, Glitched, Phantom chorus, Old radio, Underwater and
+Clockwork — and the switch cadence is adjustable, from a new voice on every word
+to one voice per sentence. Every line is saved for instant replay, re-voicing,
 pinning and sharing; pinned lines become one-tap **⚡ Quick lines** at the top.
 
 **🎭 Clones** – Record about 10 seconds of someone talking (or import an audio

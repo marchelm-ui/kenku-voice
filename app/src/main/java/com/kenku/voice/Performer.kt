@@ -93,8 +93,10 @@ class Performer(
         val smooth: Boolean,
         /** Exaggerated pitch/speed styles (fun, but harder to understand). Off by default. */
         val wild: Boolean = false,
-        /** Atmosphere on the whole line: none, cave, distant or memory. */
+        /** Atmosphere on the whole line (a LineEffect.choices key). */
         val effect: String = "none",
+        /** How many words each voice speaks before the next takes over. */
+        val cadence: Cadence = Cadence.SHORT,
         /** Finds audio for a [sound] tag such as "coins" (24 kHz), plus its friendly name. */
         val soundFor: (String) -> Pair<FloatArray, String>? = { null },
     )
@@ -115,7 +117,7 @@ class Performer(
         onPlaybackDone: () -> Unit,
     ): Result {
         cancelled = false
-        val chunks = Chunker.split(text)
+        val chunks = Chunker.split(text, cadence = opts.cadence)
         if (chunks.isEmpty()) throw IllegalArgumentException("Nothing to say")
         var speakers = opts.speakers.ifEmpty { throw IllegalStateException("No voices selected") }
         val styles = opts.styles.ifEmpty { listOf(Catalog.styles.first()) }

@@ -77,4 +77,60 @@ class LineEffectTest {
 
     private fun tone(freq: Double, seconds: Double = 0.5, amp: Float = 0.4f) =
         FloatArray((AudioDsp.RATE * seconds).toInt()) { i -> (amp * sin(2 * PI * freq * i / AudioDsp.RATE)).toFloat() }
+
+    private fun rms(x: FloatArray) = sqrt(x.sumOf { (it * it).toDouble() } / maxOf(1, x.size))
+
+    private val newKinds = listOf("glitch", "phantom", "radio", "underwater", "clockwork")
+
+    @Test
+    fun `every new texture is active, bounded, finite and audibly present`() {
+        for (kind in newKinds) {
+            val fx = LineEffect(kind)
+            assertTrue("$kind not active", fx.active)
+            val src = tone(440.0, seconds = 2.0)
+            val out = fx.process(src)
+            assertTrue("$kind unbounded", out.all { it.isFinite() && abs(it) <= 0.985f })
+            val kept = rms(out) / rms(src)
+            assertTrue("$kind energy ratio $kept", kept in 0.25..2.5)
+        }
+    }
+
+    @Test
+    fun `new textures survive streamed piece-by-piece processing`() {
+        for (kind in newKinds) {
+            val fx = LineEffect(kind)
+            val whole = tone(500.0, seconds = 1.5)
+            val streamed = ArrayList<Float>()
+            whole.toList().chunked(997).forEach { piece -> fx.process(piece.toFloatArray()).forEach { streamed.add(it) } }
+            assertEquals(whole.size, streamed.size)
+            assertTrue("$kind blew up mid-stream", streamed.all { it.isFinite() && abs(it) <= 0.985f })
+            assertTrue("$kind went silent mid-stream", rms(streamed.toFloatArray()) > 0.02)
+        }
+    }
+
+    @Test
+    fun `underwater muffles highs, clockwork reshapes the tone, radio narrows the band`() {
+        val highKept = amplitudeAt(LineEffect("underwater").process(tone(5000.0)), 5000.0)
+        val lowKept = amplitudeAt(LineEffect("underwater").process(tone(200.0)), 200.0)
+        assertTrue("underwater high $highKept low $lowKept", highKept < lowKept * 0.3)
+        // Ring modulation moves energy off the input frequency into sidebands.
+        val ringAt = amplitudeAt(LineEffect("clockwork").process(tone(800.0)), 800.0)
+        assertTrue("clockwork left the tone intact ($ringAt)", ringAt < 0.4 * 0.75)
+        val subKept = amplitudeAt(LineEffect("radio").process(tone(150.0)), 150.0)
+        assertTrue("radio kept the rumble ($subKept)", subKept < 0.12)
+    }
+
+    @Test
+    fun `glitch is deterministic per instance and keeps most of the audio`() {
+        val a = LineEffect("glitch").process(tone(600.0, seconds = 3.0))
+        val b = LineEffect("glitch").process(tone(600.0, seconds = 3.0))
+        assertArrayEquals(a, b, 0f)
+        assertTrue("glitch ate the line: ${rms(a)}", rms(a) > rms(tone(600.0, seconds = 3.0)) * 0.5)
+    }
+
+    @Test
+    fun `only the echo textures ring on after the line`() {
+        for (kind in newKinds) assertEquals("$kind should end clean", 0, LineEffect(kind).tail().size)
+        assertTrue(LineEffect("cave").tail().isNotEmpty())
+    }
 }

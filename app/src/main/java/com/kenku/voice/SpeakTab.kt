@@ -69,6 +69,7 @@ class SpeakTab(private val act: MainActivity) {
     private val smooth get() = act.prefs.getBoolean("smooth", true)
     private val wild get() = act.prefs.getBoolean("wild", false)
     private val effect get() = act.prefs.getString("effect", "none") ?: "none"
+    private val cadence get() = Cadence.of(act.prefs.getString("cadence", "short"))
 
     private fun activeAccents(): List<Accent> {
         val off = offSet("off_accents")
@@ -324,6 +325,18 @@ class SpeakTab(private val act: MainActivity) {
         body.addView(group)
         row("Smooth blending", "Softer handovers between voices", smoothOn, { smoothOn = it }, null)
         row("Wild styles", "Much bigger pitch and speed changes. Fun, but some voices get hard to understand.", wildOn, { wildOn = it }, null)
+
+        heading("Voice switching", "How many words each stolen voice speaks before the next takes over.")
+        var cadKey = cadence.key
+        val cadGroup = RadioGroup(act)
+        Cadence.entries.forEach { c ->
+            cadGroup.addView(RadioButton(act).apply {
+                id = View.generateViewId(); text = "${c.label} — ${c.detail}"; textSize = 15f; setTextColor(ui.c(R.color.ink))
+                isChecked = c.key == cadKey
+                setOnCheckedChangeListener { _, on -> if (on) cadKey = c.key }
+            })
+        }
+        body.addView(cadGroup)
         heading("Voice effect", "Atmosphere on the whole line, as if the kenku is replaying something it overheard.")
         val fxGroup = RadioGroup(act)
         LineEffect.choices.forEach { (k, t) ->
@@ -371,7 +384,7 @@ class SpeakTab(private val act: MainActivity) {
             .setView(ScrollView(act).apply { addView(body) })
             .setPositiveButton("Done") { _, _ ->
                 setOff("off_accents", offA); setOff("off_styles", offS)
-                act.prefs.edit { putString("mix", mode); putBoolean("smooth", smoothOn); putBoolean("wild", wildOn); putBoolean("awake", awakeOn); putString("effect", effectKey) }
+                act.prefs.edit { putString("mix", mode); putBoolean("smooth", smoothOn); putBoolean("wild", wildOn); putBoolean("awake", awakeOn); putString("effect", effectKey); putString("cadence", cadKey) }
                 act.applyKeepAwake()
                 updateCastInfo()
             }
@@ -554,7 +567,7 @@ class SpeakTab(private val act: MainActivity) {
 
     private fun record(line: Line, isNew: Boolean) {
         val appCtx = act.applicationContext
-        val opts = Performer.Options(speakers(), activeStyles(), smooth, wild, effect) { tag ->
+        val opts = Performer.Options(speakers(), activeStyles(), smooth, wild, effect, cadence) { tag ->
             SfxLibrary.find(appCtx, tag)?.let { fx ->
                 try {
                     val raw = if (fx.isUserFile) AudioDsp.readWav(java.io.File(fx.file))?.let { (x, r) -> AudioDsp.resample(x, r) } ?: throw IllegalStateException("unreadable")

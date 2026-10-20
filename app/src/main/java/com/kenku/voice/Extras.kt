@@ -88,18 +88,22 @@ private class Biquad(var b0: Double, var b1: Double, var b2: Double, var a1: Dou
  *  - Old memory: thin and slightly crackly, like a sound the kenku is replaying from long ago.
  */
 class LineEffect(val kind: String) {
-    private val delay = FloatArray(AudioDsp.RATE)        // up to 1 s of echo memory
+    private val delay = FloatArray(AudioDsp.RATE)        // 1 s shared ring buffer
     private var pos = 0
-    private val lp1 = Biquad.lowPass(if (kind == "distant") 2200.0 else 3400.0)
-    private val lp2 = Biquad.lowPass(if (kind == "distant") 2200.0 else 3400.0)
-    private val hp = Biquad.highPass(if (kind == "memory") 320.0 else 60.0)
+    private var t = 0L
+    private val rnd = Random(2026) // instance-seeded: streaming-stable and test-deterministic
+
+    private val lp1 = Biquad.lowPass(when (kind) { "distant" -> 2200.0; "underwater" -> 650.0; else -> 3400.0 })
+    private val lp2 = Biquad.lowPass(when (kind) { "distant" -> 2200.0; "underwater" -> 650.0; else -> 3400.0 })
+    private val hp = Biquad.highPass(when (kind) { "memory" -> 320.0; "radio" -> 500.0; else -> 60.0 })
     private val fbLp = Biquad.lowPass(2500.0)
+    private val lpRadio = Biquad.lowPass(2800.0)
 
     private val delaySamples = when (kind) { "cave" -> AudioDsp.RATE * 240 / 1000; "distant" -> AudioDsp.RATE * 55 / 1000; else -> 1 }
     private val feedback = when (kind) { "cave" -> 0.38; "distant" -> 0.25; else -> 0.0 }
     private val wet = when (kind) { "cave" -> 0.42; "distant" -> 0.3; else -> 0.0 }
 
-    val active get() = kind == "cave" || kind == "distant" || kind == "memory"
+    val active get() = kind != "none" && choices.any { it.first == kind }
 
     fun process(x: FloatArray): FloatArray {
         if (!active) return x
@@ -109,9 +113,14 @@ class LineEffect(val kind: String) {
                 "distant" -> { v = lp2.step(lp1.step(v)) * 0.85 }
                 "memory" -> {
                     v = lp2.step(lp1.step(hp.step(v)))
-                    v = tanh(v * 1.6) / 1.4 + Random.nextDouble(-0.004, 0.004)
-                    if (Random.nextInt(9000) == 0) v += Random.nextDouble(-0.08, 0.08) // a rare crackle
+                    v = tanh(v * 1.6) / 1.4 + rnd.nextDouble(-0.004, 0.004)
+                    if (rnd.nextInt(9000) == 0) v += rnd.nextDouble(-0.08, 0.08) // a rare crackle
                 }
+                "glitch" -> v = glitch(v)
+                "phantom" -> v = phantom(v)
+                "radio" -> v = radio(v)
+                "underwater" -> v = underwater(v)
+                "clockwork" -> v = clockwork(v)
             }
             if (feedback > 0) {
                 val read = (pos - delaySamples + delay.size) % delay.size
@@ -120,8 +129,71 @@ class LineEffect(val kind: String) {
                 pos = (pos + 1) % delay.size
                 v = v * (1 - wet * 0.3) + echo * wet
             }
+            t++
             v.toFloat().coerceIn(-0.98f, 0.98f)
         }
+    }
+
+    /** Linear-interpolated read [msBack] behind the write head; the modulated taps stay click-free. */
+    private fun tap(msBack: Double): Double {
+        val idx = pos - 1 - msBack * AudioDsp.RATE / 1000.0
+        val i0 = kotlin.math.floor(idx).toInt()
+        val frac = idx - i0
+        val a = delay[((i0 % delay.size) + delay.size) % delay.size]
+        val b = delay[(((i0 + 1) % delay.size) + delay.size) % delay.size]
+        return a + (b - a) * frac
+    }
+
+    // Glitched: stutter-repeats, brief dropouts and bit-crushed moments, like a scratched recording.
+    private var rptLeft = 0; private var rptLen = 1; private var rptStart = 0; private var rptPlayed = 0
+    private var muteLeft = 0; private var crushLeft = 0
+    private fun glitch(vIn: Double): Double {
+        delay[pos] = vIn.toFloat(); pos = (pos + 1) % delay.size
+        var v = vIn
+        when {
+            rptLeft > 0 -> { v = delay[((rptStart + rptPlayed % rptLen) % delay.size + delay.size) % delay.size].toDouble(); rptPlayed++; rptLeft-- }
+            muteLeft > 0 -> { v *= 0.03; muteLeft-- }
+            crushLeft > 0 -> { v = Math.round(v * 12.0) / 12.0; crushLeft-- }
+            else -> when (rnd.nextInt(26000)) {
+                0 -> { rptLen = 720 + rnd.nextInt(720); rptStart = pos - rptLen - 1; rptPlayed = 0; rptLeft = rptLen * (2 + rnd.nextInt(2)) }
+                1 -> muteLeft = 360 + rnd.nextInt(600)
+                2, 3 -> crushLeft = 960 + rnd.nextInt(1440)
+            }
+        }
+        return v
+    }
+
+    // Phantom chorus: two slowly detuned ghost copies shimmer around the voice (the closest a mono speaker gets to a stereogram).
+    private fun phantom(vIn: Double): Double {
+        delay[pos] = vIn.toFloat(); pos = (pos + 1) % delay.size
+        val s = t / AudioDsp.RATE.toDouble()
+        val g1 = tap(9.0 + 3.0 * sin(2 * PI * 0.42 * s))
+        val g2 = tap(16.0 + 4.0 * sin(2 * PI * 0.61 * s + 1.7))
+        return vIn * 0.55 + g1 * 0.38 + g2 * 0.38
+    }
+
+    // Old radio: narrow band, broadcast squash, AM flutter, hiss and the odd pop.
+    private fun radio(vIn: Double): Double {
+        var v = lpRadio.step(hp.step(vIn))
+        v = tanh(v * 2.2) / 1.8
+        v *= 0.82 + 0.18 * sin(2 * PI * 1.3 * t / AudioDsp.RATE)
+        v += (rnd.nextDouble() - 0.5) * 0.012
+        if (rnd.nextInt(9000) == 0) v += (rnd.nextDouble() - 0.5) * 0.12
+        return v
+    }
+
+    // Underwater: heavily muffled with a slow pitch wobble and a gentle swell.
+    private fun underwater(vIn: Double): Double {
+        delay[pos] = lp2.step(lp1.step(vIn)).toFloat(); pos = (pos + 1) % delay.size
+        val s = t / AudioDsp.RATE.toDouble()
+        return tap(18.0 + 7.0 * sin(2 * PI * 0.5 * s)) * (0.8 + 0.2 * sin(2 * PI * 0.31 * s)) * 1.15
+    }
+
+    // Clockwork: ring modulation plus a tight comb, a construct of brass and gears.
+    private fun clockwork(vIn: Double): Double {
+        delay[pos] = vIn.toFloat(); pos = (pos + 1) % delay.size
+        val ring = vIn * sin(2 * PI * 52.0 * t / AudioDsp.RATE)
+        return ring * 0.75 + vIn * 0.3 + tap(4.2) * 0.35
     }
 
     /** The echo that rings on after the last word. */
@@ -132,6 +204,16 @@ class LineEffect(val kind: String) {
     }
 
     companion object {
-        val choices = listOf("none" to "None", "cave" to "Cave echo", "distant" to "Distant (through a wall)", "memory" to "Old memory (lo-fi)")
+        val choices = listOf(
+            "none" to "None",
+            "cave" to "Cave echo",
+            "distant" to "Distant (through a wall)",
+            "memory" to "Old memory (lo-fi)",
+            "glitch" to "Glitched (stutters & dropouts)",
+            "phantom" to "Phantom chorus (shimmering double)",
+            "radio" to "Old radio (crackly broadcast)",
+            "underwater" to "Underwater (deep & wobbly)",
+            "clockwork" to "Clockwork (metal construct)",
+        )
     }
 }
