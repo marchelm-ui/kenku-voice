@@ -24,14 +24,14 @@ class CatalogCoverageTest {
     }
 
     @Test
-    fun `accents partition the voices — every voice in exactly one group, none lost`() {
+    fun `accents partition the voices, every voice in exactly one group, none lost`() {
         val grouped = Catalog.accents.flatMap { it.voices }
         assertEquals("a voice appears in two accents", grouped.size, grouped.toSet().size)
         assertEquals("voices missing from every accent", Catalog.voices.toSet(), grouped.toSet())
     }
 
     @Test
-    fun `accent groups are sound: unique keys, labels, non-empty, gender in names honest`() {
+    fun `accent groups have unique keys, labels, members, and honest gender tags`() {
         assertEquals(Catalog.accents.size, Catalog.accents.map { it.key }.toSet().size)
         Catalog.accents.forEach { a ->
             assertTrue("empty accent ${a.key}", a.voices.isNotEmpty())
