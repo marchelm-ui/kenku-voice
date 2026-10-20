@@ -99,10 +99,17 @@ jobs:
         with:
           name: voice-test
 
+      - name: Run the unit tests
+        run: |
+          set -o pipefail
+          gradle :app:testReleaseUnitTest --no-daemon 2>&1 | tee build-log.txt
+          echo "== unit test summary =="
+          find app/build/test-results -name '*.xml' | xargs grep -h -o 'tests="[0-9]*"' | awk -F'"' '{s+=$2} END {print s " tests ran"}'
+
       - name: Build the APK
         run: |
           set -o pipefail
-          gradle :app:assembleRelease --no-daemon 2>&1 | tee build-log.txt
+          gradle :app:assembleRelease --no-daemon 2>&1 | tee -a build-log.txt
 
       - name: Run Android lint (report only)
         run: |

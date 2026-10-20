@@ -22,10 +22,12 @@ object Chunker {
         val spoken: String
             get() {
                 val t = display.trimEnd()
-                val last = t.lastOrNull() ?: return t
+                if (t.isEmpty()) return t
+                // Look through closing quotes/brackets so `bird."` is seen as ending in `.`
+                val core = t.trimEnd('"', '\'', '”', '’', ')', ']', '*')
+                val last = core.lastOrNull() ?: return if (isLast) "$t." else "$t,"
                 return when {
-                    last in ".!?" -> t
-                    last in ",;:—-" -> t.trimEnd(',', ';', ':', '—', '-') + ","
+                    last in ".!?,;:" || last == '—' || last == '-' -> t
                     isLast -> "$t."
                     else -> "$t,"
                 }

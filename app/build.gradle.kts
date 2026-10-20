@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
-        versionName = "4.1." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
+        versionName = "4.2." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
         // Pixel phones are 64-bit ARM; leaving out other chips keeps the app ~100 MB smaller.
         ndk { abiFilters += listOf("arm64-v8a") }
     }
@@ -62,4 +62,5 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     // sherpa-onnx (offline speech engine), downloaded by the build workflow.
     implementation(files("libs/sherpa-onnx.aar"))
+    testImplementation("junit:junit:4.13.2")
 }
