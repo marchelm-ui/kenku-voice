@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- A stable id lets Android auto-restore the half-typed line when the activity
+         is recreated (auto dark mode at sunset, split screen, font-size change). -->
+    <item name="speak_input" type="id" />
+    <item name="speak_filter" type="id" />
+    <item name="sounds_search" type="id" />
+</resources>

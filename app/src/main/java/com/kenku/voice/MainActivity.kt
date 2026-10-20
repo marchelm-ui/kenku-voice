@@ -35,8 +35,12 @@ class MainActivity : AppCompatActivity() {
     lateinit var sfx: SfxPlayer
     /** Every voice-model call runs on this one thread (shared across screen restarts). */
     val engineThread get() = VoiceEngine.thread
-    /** Disk and decoding work that must not block the screen or the voices. */
-    val ioThread = Executors.newSingleThreadExecutor()
+    /**
+     * Disk and decoding work that must not block the screen or the voices. Process-wide,
+     * like the engine thread: a clone save queued just before the activity recreates
+     * (auto dark mode, split screen) must finish, not hit a shut-down executor.
+     */
+    val ioThread get() = sharedIo
     val main = Handler(Looper.getMainLooper())
     val prefs by lazy { getSharedPreferences("kenku", MODE_PRIVATE) }
     @Volatile var voicesReady = false
@@ -208,9 +212,12 @@ class MainActivity : AppCompatActivity() {
         sfx.release()
         performer.cancel()
         clonesTab.onDestroy()
-        // The voice models stay loaded for the next time the screen opens; Android frees them
-        // with the app's process when it's no longer needed.
-        ioThread.shutdown()
+        // The voice models and the io thread stay alive for the next time the screen
+        // opens; Android frees them with the app's process when it's no longer needed.
         super.onDestroy()
+    }
+
+    companion object {
+        private val sharedIo = Executors.newSingleThreadExecutor()
     }
 }

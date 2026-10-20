@@ -141,7 +141,7 @@ class SpeakTab(private val act: MainActivity) {
 
         list = ui.column().apply { setPadding(ui.dp(16), ui.dp(6), ui.dp(16), ui.dp(16)) }
         filter = EditText(act).apply {
-            id = View.generateViewId()
+            id = R.id.speak_filter
             hint = "🔍  Find a saved line"
             setSingleLine(true)
             textSize = 15f
@@ -165,7 +165,9 @@ class SpeakTab(private val act: MainActivity) {
             setBackgroundColor(ui.c(R.color.surface))
         }
         input = EditText(act).apply {
-            id = View.generateViewId()
+            // A STABLE id: generateViewId() changes every recreation, so Android could
+            // never restore the half-typed line when auto dark mode flips at sunset.
+            id = R.id.speak_input
             hint = "What does your kenku say?"
             textSize = 18f
             setTextColor(ui.c(R.color.ink))

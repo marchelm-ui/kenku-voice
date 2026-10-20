@@ -74,7 +74,7 @@ class SoundsTab(private val act: MainActivity) {
         top.addView(volRow)
 
         search = EditText(act).apply {
-            id = View.generateViewId()
+            id = R.id.sounds_search
             hint = "🔍  Search sounds (door, coins, goblin…)"
             setSingleLine(true)
             inputType = InputType.TYPE_CLASS_TEXT

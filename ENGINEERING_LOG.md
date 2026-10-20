@@ -3,6 +3,28 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 13 — surviving recreation at sunset (v4.13, 2026-10-20)
+
+**Fault found:** the activity recreates on any uiMode change — which happens
+*daily*, mid-session, when the Pixel's scheduled dark mode flips at sunset. Two
+casualties: (1) the half-typed line died, because the input field's id came
+from `View.generateViewId()` — a *different* id every recreation, so Android's
+automatic view-state restore could never match it; (2) `ioThread` was
+per-activity and shut down in `onDestroy`, so a clone save queued just before
+recreation could land on a dead executor — `RejectedExecutionException`, crash.
+
+**Shipped:** stable ids (`R.id.speak_input`, plus the two search boxes) so the
+platform restores the typed line, selection and filters for free; `ioThread`
+promoted to a process-wide executor like the engine thread, shutdown removed.
+Guard: the platform's own view-state contract — the id resources — rather than
+JVM tests, which can't see an Activity; noted here so the pattern (never
+`generateViewId()` on a view whose state matters) is on the record.
+
+**Learned:** `configChanges` in the manifest covered rotation, which made
+recreation *feel* handled — but uiMode wasn't in the list, deliberately, since
+dark mode must re-resolve colors. When recreation is sometimes wanted, state
+restore has to work, and unstable ids disable it silently.
+
 ## Cycle 12 — one authority for "how much speech is that" (v4.12, 2026-10-20)
 
 **Fault found:** `CloneStore.speechSeconds` (fixed 0.02 threshold) and
