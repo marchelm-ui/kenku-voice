@@ -108,7 +108,6 @@ class Performer(private val engine: VoiceEngine) {
         val p = StreamPlayer(onPlaybackDone).also { player = it }
         val full = ArrayList<FloatArray>()
         val parts = ArrayList<String>()
-        var tail: FloatArray? = null
         var started = false
         var genMs = 0L
         var audioSec = 0.0
@@ -124,6 +123,7 @@ class Performer(private val engine: VoiceEngine) {
             val a = fx.process(raw)
             p.push(a); full.add(a); bufferedSec += a.size / AudioDsp.RATE.toDouble()
         }
+        val stitcher = Stitcher(xf) { emit(it) }
 
         try {
             for ((i, c) in chunks.withIndex()) {
@@ -134,14 +134,10 @@ class Performer(private val engine: VoiceEngine) {
                 if (c.sound != null) {
                     val found = opts.soundFor(c.sound)
                     if (found == null) { parts.add("[${c.sound}: no matching sound]"); continue }
-                    val (fx, name) = found
-                    tail?.let { t -> for (k in t.indices) t[k] *= AudioDsp.fadeOutGain(k, t.size); emit(t) }
-                    tail = null
-                    emit(FloatArray(AudioDsp.RATE * 60 / 1000))
-                    emit(AudioDsp.fadeEdges(fx.copyOf()))
-                    emit(FloatArray(AudioDsp.RATE * 80 / 1000))
+                    val (soundSamples, name) = found
+                    stitcher.addSound(soundSamples)
                     parts.add("[$name]")
-                    audioSec += fx.size / AudioDsp.RATE.toDouble()
+                    audioSec += soundSamples.size / AudioDsp.RATE.toDouble()
                     continue
                 }
 
@@ -168,25 +164,7 @@ class Performer(private val engine: VoiceEngine) {
                 // Natural pause after punctuation the user typed; otherwise blend straight into the next voice.
                 val prevEnd = if (i > 0) chunks[i - 1].display.trimEnd().lastOrNull() else null
                 val gapMs = when (prevEnd) { '.', '!', '?' -> 260; ',', ';', ':' -> 110; else -> 0 }
-                val prev = tail
-                if (prev == null) {
-                    tail = s.copyOfRange(maxOf(0, s.size - xf), s.size)
-                    emit(s.copyOfRange(0, maxOf(0, s.size - xf)))
-                } else if (gapMs > 0) {
-                    for (k in prev.indices) prev[k] *= AudioDsp.fadeOutGain(k, prev.size)
-                    emit(prev)
-                    emit(FloatArray(AudioDsp.RATE * gapMs / 1000))
-                    tail = s.copyOfRange(maxOf(0, s.size - xf), s.size)
-                    emit(s.copyOfRange(0, maxOf(0, s.size - xf)))
-                } else {
-                    val n = minOf(prev.size, s.size / 2)
-                    val mixed = FloatArray(n) { k -> prev[prev.size - n + k] * AudioDsp.fadeOutGain(k, n) + s[k] * AudioDsp.fadeInGain(k, n) }
-                    emit(prev.copyOfRange(0, prev.size - n))
-                    emit(mixed)
-                    val bodyEnd = maxOf(n, s.size - xf)
-                    emit(s.copyOfRange(n, bodyEnd))
-                    tail = s.copyOfRange(bodyEnd, s.size)
-                }
+                stitcher.addSpeech(s, gapMs)
 
                 audioSec += s.size / AudioDsp.RATE.toDouble()
                 words += c.words.size
@@ -200,7 +178,7 @@ class Performer(private val engine: VoiceEngine) {
                     }
                 }
             }
-            tail?.let { t -> for (k in t.indices) t[k] *= AudioDsp.fadeOutGain(k, t.size); emit(t) }
+            stitcher.finish()
             if (fx.active && !cancelled) fx.tail().takeIf { it.isNotEmpty() }?.let { t -> p.push(t); full.add(t) }
             if (!started && !cancelled) onStarted()
             p.finish()

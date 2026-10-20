@@ -3,6 +3,24 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 3 — the stitcher becomes pure and tested (v4.4, 2026-10-20)
+
+**Fault found:** the crossfade/gap assembly — the single most audible piece of
+logic, the thing "seamless switching" literally is — lived inline in
+`Performer.perform()` next to threading and engine calls, untestable.
+
+**Shipped:** extracted `Stitcher` (pure: crossfades, punctuation gaps, sound
+splices, final fade) and rewired `Performer` onto it. 8 new tests pin exact
+overlap lengths, true-silence gaps, sample-continuity (no clicks even joining
+anti-phase tones), padded sound splices, faded endings, tiny/empty-snippet
+safety, and energy conservation. Performer shrank by ~30 lines.
+
+**Learned:** the inline version also shadowed the `LineEffect fx` variable with
+a destructured `(fx, name)` in the sound branch — legal Kotlin, but exactly the
+kind of trap that bites a future edit. Extraction removed it. Pure-core,
+thin-shell is now the house style: new audio math starts life in a testable
+object, never inline.
+
 ## Cycle 2 — regression gates + crash path (v4.3, 2026-10-20)
 
 **Fault found:** the CI voice test *measured* quality (loudness, speed, latency)
@@ -42,6 +60,8 @@ Python side is the authority on the models.
 
 ## Backlog (next cycles)
 
+- Self-scheduled loop: a wake-up fires every 5 hours; each cycle picks the top
+  backlog item, ships it gated, logs here, and re-arms the next wake-up.
 - targetSdk 36 + edge-to-edge layout (required for any future Play release).
 - Eliminate the Python/Kotlin chunker mirror drift (golden fixtures both read).
 - Accessibility audit: TalkBack labels exist, but ordering/grouping untested.
