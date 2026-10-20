@@ -3,6 +3,26 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 25 — clarity gets a number (v4.25, 2026-10-20)
+
+**Fault found:** voice clarity — the one fault Marcus ever reported by ear —
+had clamps (cycle 10) but no *measurement*: nothing in CI would notice if a
+model update or DSP change made voices loud but mushy inside the clamped
+range. "Blocked on human ears" was accepted too early; consonant energy is a
+number.
+
+**Shipped:** a spectral gate in the ARM voice test: the 1–4 kHz consonant band
+is measured on a fixed sentence at clear mode's two worst corners (pitch 0.88 ×
+speed 1.27, pitch 1.16 × speed 0.74) against the unshifted baseline, and the
+build fails if the band collapses below 35 % of baseline (loose first bound;
+the printed CI values will set a tighter budget next time, cycle-2 style). The
+pitch shift is mirrored model-side like trim/match — documented authority, not
+drift.
+
+**Learned:** "needs human ears" deserves the cycle-21 split too: the ear
+judges *quality*, but a spectrum can stand guard over *collapse*. Partial
+measurement beats none.
+
 ## Cycle 24 — the fix that didn't sweep its siblings (v4.24, 2026-10-20)
 
 **Fault found:** cycle 16 fixed rebuild-per-keystroke in the Speak search — and

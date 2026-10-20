@@ -138,7 +138,34 @@ assert wait < 3.0, "too slow to reply within seconds"
 # Speed budget: generation must stay comfortably faster than real time, or streaming stalls.
 assert rtf < 0.85, f"generation too slow (RTF {rtf:.2f}, budget 0.85)"
 
-# 4. table-talk canary: the messy text real users type must never crash the model,
+# 4. spectral intelligibility: clear mode's worst pitch/speed corners must keep
+# consonant-band (1-4 kHz) energy, or voices get loud but mushy - the one fault
+# Marcus reported by ear, now partially measurable without ears. The pitch shift
+# mirrors the app's resampling approach (model-side authority, like trim/match).
+def band_fraction(x, lo, hi):
+    spec = np.abs(np.fft.rfft(x.astype(np.float64))) ** 2
+    freqs = np.fft.rfftfreq(len(x), 1.0 / RATE)
+    total = spec.sum() + 1e-12
+    return spec[(freqs >= lo) & (freqs < hi)].sum() / total
+
+def pitch_mirror(x, f):
+    import scipy.signal
+    return scipy.signal.resample(x, max(1, int(len(x) / f))).astype(np.float32)
+
+clarity_text = "The quick thief slipped past six sleeping guards with the silver coins."
+base = trim(np.array(kt.generate(clarity_text, sid=0, speed=1.0).samples, dtype=np.float32))
+f_base = band_fraction(base, 1000, 4000)
+print(f"clarity baseline: {f_base:.3f} of energy in 1-4 kHz")
+assert f_base > 0.05, f"baseline speech has almost no consonant band ({f_base:.3f})"
+# Clear-mode worst corners: (pitch, model speed = rate/pitch).
+for pitch, rate_ in [(0.88, 1.12), (1.16, 0.86)]:
+    a = trim(np.array(kt.generate(clarity_text, sid=0, speed=rate_ / pitch).samples, dtype=np.float32))
+    shifted = pitch_mirror(a, pitch)
+    f_shift = band_fraction(shifted, 1000, 4000)
+    print(f"clarity at pitch {pitch} speed {rate_ / pitch:.2f}: {f_shift:.3f} (baseline {f_base:.3f})")
+    assert f_shift > 0.35 * f_base, f"consonant band collapsed at pitch {pitch}: {f_shift:.3f} vs {f_base:.3f}"
+
+# 5. table-talk canary: the messy text real users type must never crash the model,
 # and anything with actual words in it must produce audible speech.
 canary = [
     ("Roll 2d6 plus 3,", True),
