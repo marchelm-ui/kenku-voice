@@ -118,20 +118,36 @@ jobs:
           gradle :app:assembleRelease --no-daemon 2>&1 | tee -a build-log.txt
 
       - name: Run Android lint (zero-warning gate)
+        id: lint
         run: |
-          gradle :app:lintRelease --no-daemon --continue > lint-log.txt 2>&1; LINT=$?
+          set +e
+          gradle :app:lintRelease --no-daemon --continue > lint-log.txt 2>&1
+          LINT=$?
+          set -e
           cp app/build/reports/lint-results-release.txt lint-full.txt 2>/dev/null || cp lint-log.txt lint-full.txt
+          echo "== lint tail =="
+          tail -40 lint-full.txt
+          echo "exit=$LINT" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the lint report
+        if: always()
+        run: |
+          [ -f lint-full.txt ] || { echo "no lint report to publish"; exit 0; }
           git config user.name build-bot
           git config user.email build-bot@users.noreply.github.com
-          git fetch -q origin lint-report 2>/dev/null || true
-          git checkout -q --orphan lint-report
+          git checkout -q --orphan lint-publish-${{ github.run_number }}
           git rm -rf -q --cached . > /dev/null
           git add -f lint-full.txt
           git commit -q -m "Lint report build ${{ github.run_number }}"
-          git push -q -f origin lint-report
+          git push -q -f origin HEAD:lint-report
           git checkout -q -f ${{ github.sha }}
-          if [ "$LINT" -ne 0 ]; then echo "Lint failed — report tail:"; tail -60 lint-full.txt; fi
-          exit $LINT
+
+      - name: Fail on lint findings
+        if: steps.lint.outputs.exit != '0'
+        run: |
+          echo "Lint exited ${{ steps.lint.outputs.exit }} — full report tail:"
+          tail -80 lint-full.txt
+          exit 1
 
       - name: Name the APK
         run: cp app/build/outputs/apk/release/app-release.apk MockingBird.apk
@@ -195,6 +211,7 @@ jobs:
           git checkout --orphan build-logs
           git rm -rf --cached . > /dev/null
           tail -c 200000 build-log.txt > failure-log.txt 2>/dev/null || echo "no gradle log" > failure-log.txt
+          { echo; echo "== lint-log tail =="; tail -c 60000 lint-log.txt; } >> failure-log.txt 2>/dev/null || true
           git add -f failure-log.txt
           git commit -m "Build ${{ github.run_number }} failure log"
           git push -f origin build-logs
