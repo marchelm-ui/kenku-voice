@@ -195,6 +195,15 @@ class MainActivity : AppCompatActivity() {
         android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
             .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+            // When something more important takes the audio (a phone call), the kenku goes quiet.
+            .setOnAudioFocusChangeListener { change ->
+                if (change == android.media.AudioManager.AUDIOFOCUS_LOSS ||
+                    change == android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+                    performer.cancel()
+                    stopPlayback()
+                    sfx.stopAll()
+                }
+            }
             .build()
     }
 

@@ -3,6 +3,25 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 29 — the kenku yields to a phone call (v4.29, 2026-10-20)
+
+**Fault found:** the app *requests* audio focus (so other apps duck while the
+kenku talks) but registered no listener for *losing* it — so when a phone call
+comes in mid-line, the kenku keeps squawking over the caller. Focus is a
+two-way contract and only half was honored. Also: no screen anywhere said
+which build is installed, making "is this the newest?" unanswerable from the
+phone.
+
+**Shipped:** a focus-change listener — on loss or transient loss, the
+performer cancels, playback stops and all sound effects stop. And the Voices
+dialog footer now shows "Mocking Bird v4.29.n". (Platform-contract behavior,
+like cycle 13 — verified by the contract and code inspection; no JVM seam
+exists for AudioFocusRequest.)
+
+**Learned:** every protocol the app speaks has a listening half. Grep for
+`request*` calls whose corresponding callbacks are never registered — that's
+where politeness bugs live.
+
 ## Cycle 28 — the first cloned line stops apologizing (v4.28, 2026-10-20)
 
 **Fault found:** the Clones tab literally says "the first clone use takes a few

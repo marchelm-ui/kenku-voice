@@ -328,6 +328,7 @@ class SpeakTab(private val act: MainActivity) {
         }.apply { textSize = 13f; minHeight = ui.dp(40); minimumHeight = ui.dp(40) }, ui.wrap())
         heading("Screen", "")
         row("Keep screen awake", "Stops the phone from locking while the app is open, handy at the table", awakeOn, { awakeOn = it }, null)
+        body.addView(ui.body("Mocking Bird v${BuildConfig.VERSION_NAME}", 12f).apply { setPadding(0, ui.dp(8), 0, 0) })
 
         val sample = "Squawk! You owe us gold, friend."
         heading("Accents", "Untick any you don't want. Hear plays a random voice from that accent.")
