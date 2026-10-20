@@ -3,6 +3,24 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 28 — the first cloned line stops apologizing (v4.28, 2026-10-20)
+
+**Fault found:** the Clones tab literally says "the first clone use takes a few
+seconds" — an apology shipped as UI. The background work only *loaded* the
+Pocket model; the first generation still paid kernel initialization, at the
+table, with everyone waiting on the kenku's reply.
+
+**Shipped:** `warmUpPocket(reference)`: one silent "Ready." generation with a
+real clone sample, run in the background right after startup (first in-mix
+clone) and right after saving a new clone — so the expensive first generation
+happens while nobody is waiting. CI now times the first clone generation and
+fails over 20 s, keeping the path honest. (Cycle 23's lesson about error
+messages being test plans, applied to apology messages: they're work orders.)
+
+**Learned:** when UI text apologizes for latency, the latency has usually been
+accepted rather than scheduled. Most "first use is slow" costs can be paid in
+the background before first use.
+
 ## Cycle 27 — indexes stop being single points of vanishing (v4.27, 2026-10-20)
 
 **Fault found:** all three small index files — the mimic recordings' index,

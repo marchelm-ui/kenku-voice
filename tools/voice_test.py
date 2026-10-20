@@ -103,9 +103,13 @@ assert not loudness_outliers, f"voices outside the loudness band {loudness_outli
 t = time.time(); pt = pocket(); print(f"pocket load {time.time() - t:.1f}s")
 ref = np.array(kt.generate("Hello there, traveler. I have walked these roads for many years, and I have seen strange things in the hills.", sid=24).samples, dtype=np.float32)
 g = sherpa_onnx.GenerationConfig(); g.reference_audio = ref.tolist(); g.reference_sample_rate = RATE; g.num_steps = 5
+t = time.time()
 c = np.array(pt.generate("Pay the toll, little bird.", g).samples, dtype=np.float32)
-print(f"clone sample {len(c) / RATE:.2f}s rms {rms(c):.3f}")
+first_clone_gen = time.time() - t
+print(f"clone sample {len(c) / RATE:.2f}s rms {rms(c):.3f}, first generation {first_clone_gen:.1f}s")
 assert len(c) / RATE > 0.8 and rms(c) > 0.01, "cloning produced no speech"
+# The app warms this path in the background; the budget keeps "a few seconds" honest.
+assert first_clone_gen < 20, f"first clone generation too slow ({first_clone_gen:.1f}s)"
 
 # 3. 50-word line, streamed like the app
 fixture = [l.strip() for l in open(os.path.join(os.path.dirname(__file__), "benchmark_chunks.txt"))

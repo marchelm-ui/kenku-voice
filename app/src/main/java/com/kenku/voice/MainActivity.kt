@@ -99,7 +99,11 @@ class MainActivity : AppCompatActivity() {
                 clonesTab.refresh()
                 // Warm up in the background so the first real line (and first cloned line) start quickly.
                 if (voicesReady) engineThread.execute { engine.warmUp() }
-                if (voicesReady && clones.list().isNotEmpty()) engineThread.execute { engine.loadPocket() }
+                if (voicesReady) engineThread.execute {
+                    // Warm the cloning path with a real reference so the first cloned line is quick.
+                    val c = clones.list().let { all -> all.firstOrNull { it.inMix } ?: all.firstOrNull() }
+                    if (c != null) try { engine.warmUpPocket(c.samples()) } catch (e: Throwable) {}
+                }
             }
         }
     }

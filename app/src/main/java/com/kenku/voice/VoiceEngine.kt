@@ -138,6 +138,23 @@ class VoiceEngine(private val context: Context) : TtsSource {
         warmed = true
     }
 
+    @Volatile private var pocketWarmed = false
+
+    /**
+     * Loading Pocket isn't the same as initializing its kernels: the first generation
+     * is the slow one. Run it here, in the background with a real reference, so the
+     * first cloned line at the table is as quick as any other.
+     */
+    fun warmUpPocket(reference: FloatArray) {
+        if (pocketWarmed) return
+        try {
+            val tts = pocket ?: if (loadPocket()) pocket!! else return
+            val cfg = GenerationConfig(speed = 1f, referenceAudio = reference, referenceSampleRate = AudioDsp.RATE, numSteps = 5)
+            tts.generateWithConfig("Ready.", cfg)
+        } catch (e: Throwable) {}
+        pocketWarmed = true
+    }
+
     /**
      * Blocking. Loads the cloning model the first time a clone is used. Its files are copied
      * from the app package to private storage once, so the engine reads them as plain files.

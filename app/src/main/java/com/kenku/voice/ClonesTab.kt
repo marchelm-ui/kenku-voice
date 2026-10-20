@@ -226,8 +226,8 @@ class ClonesTab(private val act: MainActivity) {
                 if (ok) {
                     act.toast("Saved “$name”")
                     closePanel(); refresh()
-                    // Get the cloning model ready in the background so the first test is quick.
-                    if (act.voicesReady) act.engineThread.execute { act.engine.loadPocket() }
+                    // Warm the cloning path in the background so the first test is quick.
+                    if (act.voicesReady) act.engineThread.execute { act.engine.warmUpPocket(samples) }
                 }
                 else hint.text = "Couldn't save the clone. Check your phone has free storage."
             }
