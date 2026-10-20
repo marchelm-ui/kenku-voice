@@ -19,10 +19,17 @@ temp dir: add→list round-trip, rename persisting and delete removing file and
 entry, a *corrupted index* recovering every recording and healing the index
 for the next read, and an orphaned wav recovered alongside indexed ones.
 
-**Learned:** the storage audit is complete: every byte the user can lose
-(clones, mimic recordings, saved lines, favorites, settings) is now written
-atomically, recovered when indexes fail, included in backups, and lifecycle
-tested. That axis is saturated — closing it deliberately.
+**Learned:** the new tests immediately caught a real shipped bug: since cycle
+27, `add()` wrote the wav *then* consulted `list()`, whose recovery saw the
+fresh file as an orphan — so every mimic recording saved on builds 51+ was
+indexed twice, once as "Recovered sound". Fixed by snapshotting the list before
+writing the file, plus id-dedup in `save()` as a second line of defense. Two
+lessons: recovery code must never run concurrently with the operation that
+creates the thing it recovers; and cycle 27 shipped recovery with only its
+pure *helper* tested — the full flow test, written six cycles later, is what
+found the interaction. The storage audit is now complete and the axis closes
+deliberately: everything the user can lose is atomic, recovered, backed up,
+and lifecycle-tested.
 
 ## Cycle 32 — clone persistence under test (v4.32, 2026-10-20)
 

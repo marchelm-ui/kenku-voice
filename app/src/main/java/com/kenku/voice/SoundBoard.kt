@@ -53,16 +53,20 @@ object MimicStore {
 
     private fun save(base: File, items: List<Sfx>) {
         val arr = JSONArray()
-        items.forEach { arr.put(JSONObject().put("id", it.id).put("label", it.label).put("dur", it.seconds.toDouble())) }
+        // One entry per id, newest label wins — a second line of defense against duplicates.
+        items.associateBy { it.id }.values.forEach { arr.put(JSONObject().put("id", it.id).put("label", it.label).put("dur", it.seconds.toDouble())) }
         FileSafe.writeText(index(base), arr.toString())
     }
 
     fun add(base: File, label: String, samples: FloatArray): Sfx {
+        // Snapshot the list BEFORE writing the wav: list() recovers orphaned wavs,
+        // and a just-written file must not be "recovered" as a duplicate entry.
+        val existing = list(base)
         val id = "mimic_" + System.currentTimeMillis()
         val f = File(dir(base), "$id.wav")
         AudioDsp.writeWav(samples, f)
         val s = Sfx(id, label, f.absolutePath, samples.size / AudioDsp.RATE.toFloat(), CATEGORY)
-        save(base, list(base) + s)
+        save(base, existing + s)
         return s
     }
 
