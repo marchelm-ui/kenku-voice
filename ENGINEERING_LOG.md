@@ -3,6 +3,28 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 15 — the start gate is a contract, and the APK has a size band (v4.15, 2026-10-20)
+
+**Fault found:** the streamed-playback start decision — the exact math behind
+"50 words or less replies within seconds" — was five lines of inline estimator
+in `Performer.perform()` with an unexplained `* 1.15` and `>= 0.3`. The CI
+benchmark asserts the *outcome* on a fast ARM runner, but nothing pinned the
+*decision logic* for the slow cases a phone under load actually hits. Also: the
+APK's existence was checked, its size wasn't — a dropped model (−310 MB) or a
+duplicated asset dir would ship.
+
+**Shipped:** `StartGate` (pure): named HEADROOM and MIN_LEAD_SEC constants, the
+estimator formula, and guards for the zero cases. 6 tests: fast generation
+(benchmark RTF 0.6) starts on the first chunk, slow generation (RTF 1.4) waits
+until the remainder is affordable, the last chunk always starts, zero words /
+zero audio never divide, the decision never flips back as buffering grows, and
+the headroom holds back a chunk at break-even RTF 0.95 where the raw math says
+go. CI now also asserts 400 MB < APK < 700 MB.
+
+**Learned:** the benchmark asserting "wait < 3 s on this runner" and the gate
+deciding "start now on this phone" are different guarantees — one is a
+measurement, the other is logic, and logic can be pinned exactly.
+
 ## Cycle 14 — table talk is the real input format (v4.14, 2026-10-20)
 
 **Fault found:** the app's own fallback message — "try plain words and avoid

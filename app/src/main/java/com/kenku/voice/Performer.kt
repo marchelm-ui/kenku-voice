@@ -168,14 +168,8 @@ class Performer(private val engine: VoiceEngine) {
 
                 audioSec += s.size / AudioDsp.RATE.toDouble()
                 words += c.words.size
-                if (!started && words > 0) {
-                    // Start as soon as the rest can be generated before playback catches up.
-                    val remWords = totalWords - words
-                    val estRemAudio = audioSec / words * remWords
-                    val estRemGen = (genMs / 1000.0) / audioSec * estRemAudio * 1.15
-                    if (remWords == 0 || bufferedSec + estRemAudio - estRemGen >= 0.3) {
-                        started = true; p.allowStart(); onStarted()
-                    }
+                if (!started && StartGate.shouldStart(words, totalWords, audioSec, bufferedSec, genMs / 1000.0)) {
+                    started = true; p.allowStart(); onStarted()
                 }
             }
             stitcher.finish()

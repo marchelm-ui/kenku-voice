@@ -156,6 +156,11 @@ jobs:
         run: |
           set -euo pipefail
           ls -la MockingBird.apk
+          # Size band: under 400 MB means a model or the sound library fell out;
+          # over 700 MB means something started duplicating assets.
+          SZ=$(stat -c%s MockingBird.apk)
+          echo "APK size: $((SZ / 1048576)) MB"
+          test "$SZ" -gt 400000000 && test "$SZ" -lt 700000000
           unzip -l MockingBird.apk | grep -q 'lib/arm64-v8a/libsherpa-onnx-jni.so'
           unzip -l MockingBird.apk | grep -q 'lib/arm64-v8a/libonnxruntime.so'
           unzip -l MockingBird.apk | grep -q 'assets/kokoro/model.onnx'
