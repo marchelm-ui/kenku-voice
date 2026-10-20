@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
-        versionName = "4.6." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
+        versionName = "4.7." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
         // Pixel phones are 64-bit ARM; leaving out other chips keeps the app ~100 MB smaller.
         ndk { abiFilters += listOf("arm64-v8a") }
     }
@@ -67,4 +67,7 @@ dependencies {
     // sherpa-onnx (offline speech engine), downloaded by the build workflow.
     implementation(files("libs/sherpa-onnx.aar"))
     testImplementation("junit:junit:4.13.2")
+    // The real org.json, so LineBook's JSON round-trip runs in JVM tests
+    // (the Android SDK stub version throws "not mocked").
+    testImplementation("org.json:json:20240303")
 }

@@ -20,8 +20,6 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
-import org.json.JSONArray
-import org.json.JSONObject
 import java.io.File
 
 /** The main tab: type a line, press Enter, hear it in stolen voices; saved lines below. */
@@ -46,7 +44,6 @@ class SpeakTab(private val act: MainActivity) {
     private val linesDir by lazy { File(act.filesDir, "lines").apply { mkdirs() } }
     private val indexFile by lazy { File(act.filesDir, "lines.json") }
 
-    data class Line(val id: String, val text: String, var voices: String, var starred: Boolean = false)
     private val lines = mutableListOf<Line>()
 
     init {
@@ -384,12 +381,30 @@ class SpeakTab(private val act: MainActivity) {
                 val (title, phrases) = sections[i]
                 AlertDialog.Builder(act)
                     .setTitle(title)
-                    .setItems(phrases.map { "“$it”" }.toTypedArray()) { _, j -> insert(phrases[j]) }
+                    .setItems(phrases.map { "“$it”" }.toTypedArray()) { _, j -> phraseActions(phrases[j]) }
                     .setNegativeButton("Back") { _, _ -> pickPhrase() }
                     .show()
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    /** A chosen phrase can go into the text box to edit, or straight onto the ⚡ Quick row. */
+    private fun phraseActions(text: String) {
+        AlertDialog.Builder(act)
+            .setTitle("“$text”")
+            .setItems(arrayOf("✏️  Put it in the text box", "⚡  Pin as a Quick line")) { _, i ->
+                if (i == 0) insert(text) else pinPhrase(text)
+            }
+            .setNegativeButton("Back") { _, _ -> pickPhrase() }
+            .show()
+    }
+
+    private fun pinPhrase(text: String) {
+        LineBook.pin(lines, text, System.currentTimeMillis().toString())
+        saveLines()
+        renderList()
+        act.toast("⚡ Pinned — tap it up top to hear it")
     }
 
     /** Two taps: pick a category (any sound from it) or a specific sound; inserts a [tag] at the cursor. */
@@ -537,24 +552,11 @@ class SpeakTab(private val act: MainActivity) {
 
     private fun loadLines() {
         lines.clear()
-        try {
-            if (!indexFile.exists()) return
-            val arr = JSONArray(indexFile.readText())
-            for (i in 0 until arr.length()) {
-                val o = arr.getJSONObject(i)
-                lines.add(Line(o.getString("id"), o.getString("text"), o.optString("voices"), o.optBoolean("starred")))
-            }
-        } catch (e: Exception) {}
+        try { if (indexFile.exists()) lines.addAll(LineBook.fromJson(indexFile.readText())) } catch (e: Exception) {}
     }
 
     private fun saveLines() {
-        var unpinned = lines.count { !it.starred }
-        while (unpinned > 80) {
-            val old = lines.last { !it.starred }
-            fileFor(old).delete(); lines.remove(old); unpinned--
-        }
-        val arr = JSONArray()
-        lines.forEach { arr.put(JSONObject().put("id", it.id).put("text", it.text).put("voices", it.voices).put("starred", it.starred)) }
-        try { indexFile.writeText(arr.toString()) } catch (e: Exception) {}
+        LineBook.evict(lines).forEach { File(linesDir, "$it.wav").delete() }
+        try { indexFile.writeText(LineBook.toJson(lines)) } catch (e: Exception) {}
     }
 }

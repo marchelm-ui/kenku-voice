@@ -3,6 +3,28 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 7 — pin a phrase + the line list becomes pure (v4.7, 2026-10-20)
+
+**Fault found:** two in one place. (a) The phrasebook could only dump a phrase
+into the text box — getting "Roll for initiative!" onto the ⚡ Quick row took
+four manual steps mid-game. (b) The saved-lines bookkeeping (JSON round-trip,
+the 80-line eviction) lived untested inside `SpeakTab`, and the eviction rule
+that must never break — *a pinned line is never deleted* — was enforced by
+nothing but hope.
+
+**Shipped:** `LineBook` (pure): JSON round-trip, `pin(text)` (stars an existing
+line, keeping its cached audio, or inserts a new starred one), and `evict()`
+returning the dropped ids whose audio files the caller deletes. Tapping a
+phrasebook phrase now asks: put it in the text box, or ⚡ pin it as a Quick line
+(it bakes its audio on first tap). 7 new tests pin the round-trip, corrupt-JSON
+safety, eviction order and id reporting, the never-evict-pinned rule (even at
+cap 0), the exact-cap boundary, and pin dedupe. Real `org.json` added to the
+test classpath — the SDK stub throws in JVM tests.
+
+**Learned:** state that lives in an Activity is state nobody tests. This was
+the last pure-logic island left inline; Speak-tab persistence is now covered
+end to end.
+
 ## Cycle 6 — releases stop hoarding gigabytes (v4.6, 2026-10-20)
 
 **Fault found:** every green build published a ~450 MB release and none was ever
@@ -114,4 +136,3 @@ Python side is the authority on the models.
   backlog item, ships it gated, logs here, and re-arms the next wake-up.
 - targetSdk 36 + edge-to-edge layout (required for any future Play release).
 - Accessibility audit: TalkBack labels exist, but ordering/grouping untested.
-- Phrasebook lines could feed Quick lines directly ("pin a phrase").
