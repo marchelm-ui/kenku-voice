@@ -290,7 +290,10 @@ class SoundsTab(private val act: MainActivity) {
             body.addView(ui.body("Point the phone at the sound and tap Record. Up to 15 seconds. Silence at the start and end is trimmed.", 14f))
             val timer = ui.body("0.0 s", 22f, R.color.ink).apply { gravity = Gravity.CENTER; setPadding(0, ui.dp(10), 0, ui.dp(4)) }
             body.addView(timer, LinearLayout.LayoutParams(-1, -2))
-            val meter = ProgressBar(act, null, android.R.attr.progressBarStyleHorizontal).apply { max = 100 }
+            val meter = ProgressBar(act, null, android.R.attr.progressBarStyleHorizontal).apply {
+                max = 100
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }
             body.addView(meter, ui.fill(8))
             val recBtn = ui.button("● Record", Ui.Kind.PRIMARY) {}.apply { minHeight = ui.dp(56) }
             body.addView(recBtn, ui.fill(8))

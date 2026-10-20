@@ -3,6 +3,26 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 21 — TalkBack hears what matters, not the meters (v4.21, 2026-10-20)
+
+**Fault found:** the backlog's accessibility audit was parked as "needs human
+testing" — but half of it doesn't. Code inspection found the gaps directly: the
+Speak status line and the clone recorder's verdict changed silently (a TalkBack
+user never heard "Stealing voices… 3 of 9" or "Got 9 seconds of speech"), while
+the three decorative level/progress meters *were* focusable noise.
+
+**Shipped:** `accessibilityLiveRegion = POLITE` on the two lines whose changes
+are the information (generation status, recording verdict);
+`importantForAccessibility = NO` on the three meters whose information lives in
+the text beside them. Audited the rest: every button carries real text, fields
+have hints, the volume slider and tab bar were already labeled. What still
+needs a human with TalkBack on — focus order, gesture flow — stays in the
+backlog, now precisely scoped.
+
+**Learned:** "needs human testing" is often two items fused: the part a code
+audit settles today and the part that truly needs ears. Split them and ship
+the first half.
+
 ## Cycle 20 — the phrasebook is data too (v4.20, 2026-10-20)
 
 **Fault found:** after cycle 9 guarded the sound catalog, one data-as-code
@@ -405,4 +425,5 @@ Python side is the authority on the models.
 - Self-scheduled loop: a wake-up fires every 5 hours; each cycle picks the top
   backlog item, ships it gated, logs here, and re-arms the next wake-up.
 - targetSdk 36 + edge-to-edge layout (required for any future Play release).
-- Accessibility audit: TalkBack labels exist, but ordering/grouping untested.
+- Accessibility: labels and live regions done (cycle 21); focus order and
+  gesture flow still need a human with TalkBack on.

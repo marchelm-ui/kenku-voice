@@ -68,9 +68,14 @@ class ClonesTab(private val act: MainActivity) {
         timer = ui.body("0.0 s", 18f, R.color.ink).apply { setPadding(ui.dp(12), 0, 0, 0) }
         recRow.addView(timer)
         panel.addView(recRow)
-        meter = ProgressBar(act, null, android.R.attr.progressBarStyleHorizontal).apply { max = 100; progress = 0 }
+        meter = ProgressBar(act, null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100; progress = 0
+            // Decorative mic-level meter; the timer and hint carry the information.
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }
         panel.addView(meter, ui.fill(4))
-        hint = ui.body("", 13f, R.color.muted)
+        // TalkBack announces recording verdicts ("Got 9 seconds of speech…") when they change.
+        hint = ui.body("", 13f, R.color.muted).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
         panel.addView(hint)
 
         afterRec = ui.column().apply { visibility = View.GONE; setPadding(0, ui.dp(8), 0, 0) }

@@ -121,7 +121,8 @@ class SpeakTab(private val act: MainActivity) {
         castInfo = ui.body("", 12f, R.color.brass).apply { typeface = Typeface.MONOSPACE; setPadding(0, ui.dp(4), 0, 0) }
         header.addView(castInfo)
         val statusRow = ui.row().apply { setPadding(0, ui.dp(6), 0, 0) }
-        status = ui.body("", 14f, R.color.accent)
+        // TalkBack announces progress changes ("Stealing voices… 3 of 9") as they happen.
+        status = ui.body("", 14f, R.color.accent).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
         statusRow.addView(status, ui.weight())
         stop = ui.button("■ Stop", Ui.Kind.DANGER) { stopSpeaking() }.apply { visibility = View.GONE; minHeight = ui.dp(40); minimumHeight = ui.dp(40) }
         statusRow.addView(stop)
@@ -129,6 +130,8 @@ class SpeakTab(private val act: MainActivity) {
         progress = ProgressBar(act, null, android.R.attr.progressBarStyleHorizontal).apply {
             max = 100; progress = 0; visibility = View.GONE
             progressTintList = android.content.res.ColorStateList.valueOf(ui.c(R.color.accent))
+            // Decorative: the status line above already announces the same progress.
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
         header.addView(progress, LinearLayout.LayoutParams(-1, ui.dp(6)).apply { topMargin = ui.dp(4) })
         root.addView(header)
