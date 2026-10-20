@@ -179,12 +179,19 @@ jobs:
           name: MockingBird
           path: MockingBird.apk
 
+      - name: Write release notes from the engineering log
+        run: |
+          python3 tools/release_notes.py ENGINEERING_LOG.md > release-notes.md
+          cat release-notes.md
+          # The log always has entries, so header-only notes mean the parser broke.
+          grep -q "What's new" release-notes.md
+
       - name: Publish as the latest release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
           name: Mocking Bird build ${{ github.run_number }}
-          body: "Download MockingBird.apk below on your Android phone and open it to install. Speak, Clones and Sounds tabs with 54 voices, voice cloning, a phrasebook, voice effects and 460+ medieval sounds. Large download (about 600 MB)."
+          body_path: release-notes.md
           files: |
             MockingBird.apk
             kenku-sample.wav

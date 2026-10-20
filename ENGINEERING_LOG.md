@@ -3,6 +3,22 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 18 — releases say what changed (v4.18, 2026-10-20)
+
+**Fault found:** every release carried the same generic blurb, so from the
+phone there was no way to tell build 39 from build 22 — seventeen cycles of
+fixes, invisible at the point of install. The information existed all along,
+in this log.
+
+**Shipped:** `tools/release_notes.py` builds the release body from this log's
+newest entry (title + its Shipped paragraph), so the GitHub release page now
+documents each build. CI asserts the parser found an entry — header-only notes
+fail the build rather than shipping silently degraded.
+
+**Learned:** a record nobody can see from where they stand isn't a record,
+it's an archive. Surface the log at the point of use and it starts paying
+rent.
+
 ## Cycle 17 — the sound cache stops growing forever (v4.17, 2026-10-20)
 
 **Fault found:** `SfxPlayer.preload` decoded each on-screen category into
