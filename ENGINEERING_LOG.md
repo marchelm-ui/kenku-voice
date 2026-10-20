@@ -3,6 +3,27 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 36 — and a restore to make the backup real (v4.36, 2026-10-20)
+
+**Fault found:** cycle 35 shipped half a feature — a backup nobody can open is
+a souvenir. Restore is also where the risk lives: a zip is attacker-shaped
+input (zip-slip paths, stray executables), and a careless restore could
+clobber newer recordings with older ones.
+
+**Shipped:** `ZipPack.restore`: only whitelisted entry shapes are honored
+(clone samples/info, mimic wavs, the two indexes), every path is
+canonical-checked against escape, existing files are never overwritten, and
+the two shared indexes merge by id with the phone's own entries winning — so
+restore is additive and idempotent. A "📥 Restore" button beside the backup
+one picks the zip and reloads lines, clones and cast info. 3 new tests: a
+fresh phone gets everything back (ids intact), merging clobbers nothing and
+restoring twice is a no-op, and a hostile zip (../escape, absolute paths,
+stray .exe) lands zero files.
+
+**Learned:** export defines a format; import defines a *contract with hostile
+input*. Writing restore forced the whitelist that export alone never needed —
+the second half of a feature is where its security lives.
+
 ## Cycle 35 — a backup the user holds in their own hands (v4.35, 2026-10-20)
 
 **Fault found:** cycle 31's auto-backup is real but invisible and conditional —
@@ -721,4 +742,3 @@ Python side is the authority on the models.
 - targetSdk 36 + edge-to-edge layout (required for any future Play release).
 - Accessibility: labels and live regions done (cycle 21); focus order and
   gesture flow still need a human with TalkBack on.
-- Restore from a backup zip (import counterpart to cycle 35's export).

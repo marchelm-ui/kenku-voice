@@ -328,8 +328,11 @@ class SpeakTab(private val act: MainActivity) {
         }.apply { textSize = 13f; minHeight = ui.dp(40); minimumHeight = ui.dp(40) }, ui.wrap())
         heading("Screen", "")
         row("Keep screen awake", "Stops the phone from locking while the app is open, handy at the table", awakeOn, { awakeOn = it }, null)
-        body.addView(ui.button("💾 Save a backup file") { exportPack() }.apply { textSize = 13f; minHeight = ui.dp(44); minimumHeight = ui.dp(44) }, ui.wrap())
-        body.addView(ui.body("Packs your clones, recordings and saved lines into one file you can keep anywhere.", 12f))
+        val backupRow = ui.row()
+        backupRow.addView(ui.button("💾 Save a backup file") { exportPack() }.apply { textSize = 13f; minHeight = ui.dp(44); minimumHeight = ui.dp(44) }, ui.wrap())
+        backupRow.addView(ui.button("📥 Restore") { pickRestore.launch("application/zip") }.apply { textSize = 13f; minHeight = ui.dp(44); minimumHeight = ui.dp(44) }, ui.wrap())
+        body.addView(backupRow)
+        body.addView(ui.body("Backs up your clones, recordings and saved lines into one file you can keep anywhere — and restores them from it.", 12f))
         body.addView(ui.body("Mocking Bird v${BuildConfig.VERSION_NAME}", 12f).apply { setPadding(0, ui.dp(8), 0, 0) })
 
         val sample = "Squawk! You owe us gold, friend."
@@ -362,6 +365,36 @@ class SpeakTab(private val act: MainActivity) {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private val pickRestore = act.registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) restorePack(uri)
+    }
+
+    /** Restores a backup zip: copies it local, merges it in, then reloads everything. */
+    private fun restorePack(uri: android.net.Uri) {
+        act.toast("Restoring…")
+        act.ioThread.execute {
+            val restored = try {
+                val tmp = File(act.cacheDir, "restore.zip")
+                act.contentResolver.openInputStream(uri)?.use { ins -> tmp.outputStream().use { ins.copyTo(it) } }
+                    ?: throw IllegalStateException("unreadable")
+                val n = ZipPack.restore(tmp, act.filesDir)
+                tmp.delete()
+                n
+            } catch (e: Exception) { -1 }
+            act.main.post {
+                if (!act.alive) return@post
+                when {
+                    restored < 0 -> act.toast("That file couldn't be read as a Mocking Bird backup.")
+                    restored == 0 -> act.toast("Nothing new in that backup.")
+                    else -> {
+                        loadLines(); renderList(); updateCastInfo()
+                        act.toast("Restored $restored files. Clones and sounds are back.")
+                    }
+                }
+            }
+        }
     }
 
     /** Packs clones, mimic recordings and the saved-lines index into one shareable zip. */
