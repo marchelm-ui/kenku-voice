@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What survives to a new phone (Android 11 and older). Clones and mimic recordings
+     are irreplaceable; line audio is regenerable bulk that would blow the 25 MB
+     backup quota and silently kill the whole backup. -->
+<full-backup-content>
+    <include domain="file" path="clones" />
+    <include domain="file" path="mimic" />
+    <include domain="file" path="lines.json" />
+    <include domain="sharedpref" path="kenku.xml" />
+    <exclude domain="file" path="lines" />
+</full-backup-content>

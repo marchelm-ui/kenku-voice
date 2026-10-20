@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Same rules as backup_rules.xml, in the Android 12+ format, for cloud backup
+     and direct device-to-device transfer alike. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="file" path="clones" />
+        <include domain="file" path="mimic" />
+        <include domain="file" path="lines.json" />
+        <include domain="sharedpref" path="kenku.xml" />
+        <exclude domain="file" path="lines" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="file" path="clones" />
+        <include domain="file" path="mimic" />
+        <include domain="file" path="lines.json" />
+        <include domain="sharedpref" path="kenku.xml" />
+        <exclude domain="file" path="lines" />
+    </device-transfer>
+</data-extraction-rules>

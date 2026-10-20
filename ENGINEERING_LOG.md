@@ -3,6 +3,28 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 31 — a new phone inherits the kenku (v4.31, 2026-10-20)
+
+**Fault found:** `allowBackup="true"` with no rules meant Android tried to back
+up *everything* in filesDir — including the saved lines' regenerable wav cache,
+which alone can blow the 25 MB auto-backup quota. Over quota, the backup fails
+*silently and entirely*: a lost or new phone would inherit nothing — not even
+the voice clones, the one thing that cannot be re-made without the original
+person at the mic.
+
+**Shipped:** backup rules in both formats (pre-12 `backup_rules.xml`, 12+
+`data_extraction_rules.xml` covering cloud backup and device-to-device
+transfer): clones, mimic recordings, the lines index and settings go in; the
+bulk line audio stays out (it regenerates on first tap). `BackupRulesTest`
+(3 tests) pins both formats in lockstep — same includes, same excludes, for
+cloud and transfer alike — and that the manifest actually references both
+files.
+
+**Learned:** a default left unconfigured is still a decision — here,
+"allowBackup=true" silently decided that backups fail. The quota failure mode
+is the nasty part: not partial backup, *no* backup, with no error shown to
+anyone.
+
 ## Cycle 30 — the unlistened-callback sweep (v4.30, 2026-10-20)
 
 **Fault found:** running cycle 29's closing lesson as an actual sweep found two
