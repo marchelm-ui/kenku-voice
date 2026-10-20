@@ -17,6 +17,10 @@ android {
         ndk { abiFilters += listOf("arm64-v8a") }
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     // Keep the voice model uncompressed so it loads quickly.
     androidResources {
         noCompress += listOf("onnx", "bin", "ogg")
