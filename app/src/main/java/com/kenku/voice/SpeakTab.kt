@@ -578,6 +578,6 @@ class SpeakTab(private val act: MainActivity) {
 
     private fun saveLines() {
         LineBook.evict(lines).forEach { File(linesDir, "$it.wav").delete() }
-        try { indexFile.writeText(LineBook.toJson(lines)) } catch (e: Exception) {}
+        try { FileSafe.writeText(indexFile, LineBook.toJson(lines)) } catch (e: Exception) {}
     }
 }

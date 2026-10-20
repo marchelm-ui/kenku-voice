@@ -53,7 +53,7 @@ class CloneStore(context: Context) {
 
     fun save(c: Clone) {
         File(root, c.id).mkdirs()
-        File(File(root, c.id), "info.json").writeText(JSONObject().put("name", c.name).put("inMix", c.inMix).toString())
+        FileSafe.writeText(File(File(root, c.id), "info.json"), JSONObject().put("name", c.name).put("inMix", c.inMix).toString())
     }
 
     fun delete(c: Clone) { File(root, c.id).deleteRecursively() }

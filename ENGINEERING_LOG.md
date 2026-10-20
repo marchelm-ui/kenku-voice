@@ -3,6 +3,28 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 27 — indexes stop being single points of vanishing (v4.27, 2026-10-20)
+
+**Fault found:** all three small index files — the mimic recordings' index,
+the saved lines' index, each clone's info.json — were written with a plain
+`writeText`: not atomic. A crash or kill mid-write corrupts the file, the
+loader's catch-all returns an empty list, and everything the index named
+"disappears" — while the audio files sit on disk, orphaned and invisible. The
+user's own recordings were one unlucky moment from silently vanishing.
+
+**Shipped:** `FileSafe.writeText` (write temp, rename into place; the sibling
+sweep from cycle 24 applied on day one — all three call sites converted at
+once). Plus recovery: `MimicStore.list` now finds wav files the index forgot
+and restores them as "Recovered sound N" instead of hiding them; clones were
+already resilient (a lost info.json falls back to "Unnamed voice", keeping the
+sample). 4 tests: create/replace with no temp residue, interrupted write
+leaves old content intact and the next write wins, orphans recovered with the
+right duration, non-wavs and known ids ignored.
+
+**Learned:** every "load { … } catch { emptyList() }" is a silent data-loss
+path wearing a robustness costume. The catch keeps the app alive; atomic
+writes and recovery keep the *data* alive — all three are needed.
+
 ## Cycle 26 — budgets from measurements, contracts from fuzz (v4.26, 2026-10-20)
 
 **Fault found:** two loose ends. Cycle 25's clarity gate shipped with a

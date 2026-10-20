@@ -24,19 +24,37 @@ object MimicStore {
     private fun dir(ctx: Context) = File(ctx.filesDir, "mimic").apply { mkdirs() }
     private fun index(ctx: Context) = File(dir(ctx), "index.json")
 
-    fun list(ctx: Context): List<Sfx> = try {
-        val arr = JSONArray(index(ctx).readText())
-        (0 until arr.length()).map { i ->
-            val o = arr.getJSONObject(i)
-            Sfx(o.getString("id"), o.getString("label"), File(dir(ctx), o.getString("id") + ".wav").absolutePath,
-                o.optDouble("dur", 1.0).toFloat(), CATEGORY)
-        }.filter { File(it.file).exists() }
-    } catch (e: Exception) { emptyList() }
+    fun list(ctx: Context): List<Sfx> {
+        val indexed = try {
+            val arr = JSONArray(index(ctx).readText())
+            (0 until arr.length()).map { i ->
+                val o = arr.getJSONObject(i)
+                Sfx(o.getString("id"), o.getString("label"), File(dir(ctx), o.getString("id") + ".wav").absolutePath,
+                    o.optDouble("dur", 1.0).toFloat(), CATEGORY)
+            }.filter { File(it.file).exists() }
+        } catch (e: Exception) { emptyList() }
+        // Recordings the index forgot (a crash mid-save, a corrupted index) are
+        // recovered from their wav files rather than silently vanishing.
+        val orphans = orphanEntries(indexed.map { it.id }.toSet(), dir(ctx).listFiles()?.toList() ?: emptyList())
+        if (orphans.isEmpty()) return indexed
+        val all = indexed + orphans
+        try { save(ctx, all) } catch (e: Exception) {}
+        return all
+    }
+
+    /** Entries for wav files missing from the index: recovered with a plain name, never deleted. */
+    fun orphanEntries(knownIds: Set<String>, files: List<File>): List<Sfx> = files
+        .filter { it.isFile && it.extension == "wav" && it.nameWithoutExtension !in knownIds }
+        .sortedBy { it.name }
+        .mapIndexed { i, f ->
+            Sfx(f.nameWithoutExtension, "Recovered sound ${i + 1}", f.absolutePath,
+                (f.length() - 44).coerceAtLeast(0) / 2f / AudioDsp.RATE, CATEGORY)
+        }
 
     private fun save(ctx: Context, items: List<Sfx>) {
         val arr = JSONArray()
         items.forEach { arr.put(JSONObject().put("id", it.id).put("label", it.label).put("dur", it.seconds.toDouble())) }
-        index(ctx).writeText(arr.toString())
+        FileSafe.writeText(index(ctx), arr.toString())
     }
 
     fun add(ctx: Context, label: String, samples: FloatArray): Sfx {
