@@ -41,6 +41,21 @@ object Phrasebook {
             "Who goes there?", "Where is the treasure?", "What was that noise?", "Can you keep a secret?",
             "Are we there yet?", "Which way to the castle?", "Did you hear that?",
         ),
+        "🕵️ Sneaking" to listOf(
+            "Shh. Follow me.", "Stay low and stay close.", "The guard is turning. Move!",
+            "Wait for my signal.", "Not a sound, not a word.", "Through the shadows, quickly.",
+            "Someone's at the door. Act natural.", "We were never here.",
+        ),
+        "🙏 Pleading" to listOf(
+            "Please, I beg you!", "Mercy! I'm only a poor bird!", "Take the gold, not my life!",
+            "I know things. Useful things!", "Spare me and I'll serve you!", "It wasn't me, I swear it!",
+            "Have pity on a humble creature.",
+        ),
+        "🎭 Mimicked voices" to listOf(
+            "Halt! In the name of the crown!", "The master is not home.", "Fresh bread! Two coppers!",
+            "Long live the king!", "Stand and deliver!", "You are under arrest!",
+            "The ritual begins at midnight.", "My precious. My shiny precious.",
+        ),
     )
 }
 

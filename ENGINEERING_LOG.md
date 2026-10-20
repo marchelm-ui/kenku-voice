@@ -3,6 +3,25 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 34 — the phrasebook grows into its role (v4.34, 2026-10-20)
+
+**Fault found:** not a defect — an under-filled container. Since cycle 7 a
+phrase is one tap from the ⚡ Quick row, making the phrasebook load-bearing
+play material, but it still had the original 62 lines across 7 sections, with
+whole kenku situations missing: stealth table-talk, begging for your bird's
+life, and — the most kenku thing of all — overheard voices replayed verbatim
+(guards, street criers, a certain ring-obsessed whisper).
+
+**Shipped:** three new sections — 🕵️ Sneaking, 🙏 Pleading, 🎭 Mimicked voices
+— bringing the book to 85 phrases across 10 sections. Zero new guard code
+needed: cycle 20's `PhrasebookSanityTest` (shape, duplicates, tap-size,
+punctuation, lossless splitting) and the cycle-26 fuzz covered the additions
+the moment they were written, validated before push with the same checks.
+
+**Learned:** infrastructure cycles compound into content cycles: once the
+guards exist, adding user-facing material is cheap and safe. The ratio should
+swing this way more often now — the scaffolding is up.
+
 ## Cycle 33 — the mimic store gets the clone treatment (v4.33, 2026-10-20)
 
 **Fault found:** cycle 32's closing lesson named the pattern
