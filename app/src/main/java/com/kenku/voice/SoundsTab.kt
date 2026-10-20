@@ -38,6 +38,7 @@ class SoundsTab(private val act: MainActivity) {
     private val chips = mutableMapOf<String, LinearLayout>()
     private val tiles = mutableMapOf<String, Pair<LinearLayout, TextView>>()
     private var selected = act.prefs.getString("sfx_cat", null)
+    private val searchRender = Runnable { if (act.alive) showCurrent() }
     private val favorites: MutableSet<String> = (act.prefs.getStringSet("sfx_fav", emptySet()) ?: emptySet()).toMutableSet()
 
     init {
@@ -86,8 +87,9 @@ class SoundsTab(private val act: MainActivity) {
                 override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                 override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                 override fun afterTextChanged(s: Editable?) {
-                    val q = s?.toString()?.trim().orEmpty()
-                    if (q.isEmpty()) showCategory(selected ?: FAV) else showSearch(q)
+                    // Debounced, like the Speak search: rebuilding 467 tiles per keystroke is jank.
+                    act.main.removeCallbacks(searchRender)
+                    act.main.postDelayed(searchRender, 150)
                 }
             })
         }
@@ -167,12 +169,8 @@ class SoundsTab(private val act: MainActivity) {
 
     private fun showSearch(q: String) {
         highlightChip(null)
-        val words = q.lowercase().split(Regex("\\s+"))
         val titles = categories.associate { it.key to it.title } + (MimicStore.CATEGORY to "My Mimicry")
-        val found = allSounds().filter { s ->
-            val hay = (s.label + " " + titles[s.category]).lowercase()
-            words.all { hay.contains(it) }
-        }
+        val found = SfxSearch.filter(allSounds(), titles, q)
         header.text = "Results for “$q”"
         sub.text = if (found.isEmpty()) "No sounds match. Try a simpler word like door, coin, sword or wolf." else "${found.size} sounds"
         fill(found, showCategory = true)

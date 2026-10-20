@@ -3,6 +3,24 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 24 — the fix that didn't sweep its siblings (v4.24, 2026-10-20)
+
+**Fault found:** cycle 16 fixed rebuild-per-keystroke in the Speak search — and
+stopped there. The Sounds search had the identical fault, worse: it rebuilds a
+grid of up to 467 tiles on every character typed. One fault class, two
+instances, one fixed. Its matching logic (words across label + category title)
+was also inline and untested.
+
+**Shipped:** the same 150 ms debounce as the Speak search, and the matching
+extracted to `SfxSearch.filter` with 4 tests (case-insensitive label words,
+matching through the category title, all-words-must-match, blank query / stray
+category safety). Swept the rest of the app for other TextWatchers that
+rebuild views: none remain.
+
+**Learned:** a fault fixed where it was noticed is half-fixed. The closing
+move of every fix is the grep for its siblings — this cycle exists because
+cycle 16 skipped that step.
+
 ## Cycle 23 — failure never eats the typed line (v4.23, 2026-10-20)
 
 **Fault found:** `submit()` cleared the text box the moment the Say button was
