@@ -138,6 +138,28 @@ assert wait < 3.0, "too slow to reply within seconds"
 # Speed budget: generation must stay comfortably faster than real time, or streaming stalls.
 assert rtf < 0.85, f"generation too slow (RTF {rtf:.2f}, budget 0.85)"
 
+# 4. table-talk canary: the messy text real users type must never crash the model,
+# and anything with actual words in it must produce audible speech.
+canary = [
+    ("Roll 2d6 plus 3,", True),
+    ("10 gold, 20 silver,", True),
+    ("WAIT. STOP. NOW.", True),
+    ("What?!?!", True),
+    ("Wait… okay go!", True),
+    ("'swordfish' (I think),", True),
+    ("Supercalifragilisticexpialidocious,", True),
+    ("🪙🔥,", False),            # emoji-only: silence is fine, crashing is not
+    ("?!?!.", False),
+]
+for text, must_speak in canary:
+    try:
+        a = np.array(kt.generate(text, sid=0).samples, dtype=np.float32)
+    except Exception as e:
+        raise AssertionError(f"model crashed on {text!r}: {e}")
+    if must_speak:
+        assert len(a) / RATE > 0.15 and rms(trim(a)) > 0.01, f"no speech for {text!r}"
+print(f"table-talk canary: {len(canary)} tricky inputs survived")
+
 pcm = (np.clip(np.concatenate(pieces), -1, 1) * 32767).astype("<i2")
 with wave.open(OUT, "wb") as w:
     w.setnchannels(1); w.setsampwidth(2); w.setframerate(RATE); w.writeframes(pcm.tobytes())

@@ -27,7 +27,7 @@ object Chunker {
                 val core = t.trimEnd('"', '\'', '”', '’', ')', ']', '*')
                 val last = core.lastOrNull() ?: return if (isLast) "$t." else "$t,"
                 return when {
-                    last in ".!?,;:" || last == '—' || last == '-' -> t
+                    last in ".!?,;:" || last == '—' || last == '-' || last == '…' -> t
                     isLast -> "$t."
                     else -> "$t,"
                 }
@@ -77,7 +77,7 @@ object Chunker {
             val bare = w.lowercase().trim('"', '\'', '(', ')', '“', '”', '‘', '’', '*')
             val end = w.trimEnd('"', '\'', ')', '”', '’', '*').lastOrNull() ?: ' '
             var c = when {
-                end in ".!?" -> -4.0
+                end in ".!?" || end == '…' -> -4.0
                 end in ",;:" || w.endsWith("—") || w.endsWith("-") -> -3.0
                 bare.trimEnd('.', ',', '!', '?', ';', ':') in leaners -> 3.0
                 else -> 0.0

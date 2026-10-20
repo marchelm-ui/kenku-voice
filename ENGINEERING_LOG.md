@@ -3,6 +3,28 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 14 — table talk is the real input format (v4.14, 2026-10-20)
+
+**Fault found:** the app's own fallback message — "try plain words and avoid
+unusual symbols" — admits an untested input class: dice notation, ALL CAPS,
+"What?!?!", emoji, pasted tabs/newlines, 30-letter names. Testing it found the
+cycle-1 quote bug's cousin: an ellipsis word (`think…`) wasn't recognized as
+punctuation, so the model received `think…,` doubled up, and `…` was never a
+preferred break point either.
+
+**Shipped:** `…` joins the punctuation sets in `Chunker.spoken` and the break
+cost. `ChunkerRobustnessTest` (4 tests): ten lines of real table talk split
+losslessly across seeds, every spoken piece stays punctuated and 1–4 words,
+ellipses never double-punctuate, blank input yields nothing while symbol soup
+survives. CI gains a table-talk canary: nine tricky inputs (digits, caps,
+interrobangs, ellipses, quotes-in-parens, a 34-letter name, emoji-only) run
+through the real Kokoro model — a crash fails the build, and anything with
+words must produce audible speech.
+
+**Learned:** the error message a developer writes to excuse a fault is a test
+plan in disguise. "Avoid unusual symbols" told me exactly what to feed the
+tests — and one symbol was indeed broken.
+
 ## Cycle 13 — surviving recreation at sunset (v4.13, 2026-10-20)
 
 **Fault found:** the activity recreates on any uiMode change — which happens
