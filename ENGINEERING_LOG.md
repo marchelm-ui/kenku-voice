@@ -3,6 +3,23 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 40 — features stop stepping on each other (v4.40, 2026-10-20)
+
+**Fault found:** a cross-feature interaction born two cycles ago: `share(line)`
+"cleans up" by deleting *everything* in the share cache dir — which, since
+cycle 35, also hosts the backup zip. Share a line while the backup is still
+being consumed by the receiving app (a slow Drive upload) and the zip vanishes
+mid-transfer. Also a UX gap: unpinning a ⚡ Quick line required scrolling to
+find its card below.
+
+**Shipped:** the line-share cleanup now deletes only its own `kenku-*` audio
+files; and a long-press on any Quick-line button opens a small menu — Play, New
+voices, Unpin — right where the thumb already is.
+
+**Learned:** "clean up the folder" is a claim about ownership; the moment a
+second feature writes into the same folder, that claim is a bug. Cleanup code
+should delete by its own naming pattern, never by location.
+
 ## Cycle 39 — the front page catches up (v4.39, 2026-10-20)
 
 **Fault found:** the README described the app as of this morning — no mention

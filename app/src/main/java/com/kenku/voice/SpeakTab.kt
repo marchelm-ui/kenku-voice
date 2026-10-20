@@ -220,6 +220,18 @@ class SpeakTab(private val act: MainActivity) {
             val label = if (l.text.length > 28) l.text.take(26).trimEnd() + "…" else l.text
             quickRow.addView(ui.button("▶ $label", Ui.Kind.NORMAL) { play(l) }.apply {
                 minHeight = ui.dp(52); textSize = 15f; contentDescription = "Play ${l.text}"
+                // Hold a Quick line to manage it right there instead of hunting its card below.
+                setOnLongClickListener { v ->
+                    ui.tick(v)
+                    AlertDialog.Builder(act)
+                        .setTitle(l.text.take(80))
+                        .setItems(arrayOf("▶  Play", "🎲  New voices", "📌  Unpin from Quick lines")) { _, i ->
+                            when (i) { 0 -> play(l); 1 -> remake(l); else -> { l.starred = false; saveLines(); renderList() } }
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                    true
+                }
             }, ui.wrap())
         }
     }
@@ -609,7 +621,8 @@ class SpeakTab(private val act: MainActivity) {
         val f = fileFor(line)
         if (!f.exists()) return
         try {
-            val shareDir = File(act.cacheDir, "share").apply { mkdirs(); listFiles()?.forEach { it.delete() } }
+            // Only clear stale line audio: the backup zip may still be mid-share elsewhere.
+            val shareDir = File(act.cacheDir, "share").apply { mkdirs(); listFiles()?.filter { it.name.startsWith("kenku-") }?.forEach { it.delete() } }
             val name = line.text.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').take(40).ifBlank { "kenku" }
             val named = File(shareDir, "kenku-$name.wav")
             f.copyTo(named, overwrite = true)
