@@ -52,6 +52,37 @@ class LineBookTest {
     }
 
     @Test
+    fun `visible matches every query word in any order and case`() {
+        val lines = mutableListOf(
+            Line("1", "You owe us gold", "", false),
+            Line("2", "The tavern keeper said so", "", false),
+            Line("3", "Gold for the tavern", "", true),
+        )
+        assertEquals(listOf("3", "2"), LineBook.visible(lines, "TAVERN").map { it.id })
+        assertEquals(listOf("3"), LineBook.visible(lines, "gold tavern").map { it.id })
+        assertEquals(listOf("3", "1", "2"), LineBook.visible(lines, "").map { it.id })
+        assertTrue(LineBook.visible(lines, "dragon").isEmpty())
+    }
+
+    @Test
+    fun `visible keeps pinned lines first and saved order within groups`() {
+        val lines = mutableListOf(line(1), line(2, starred = true), line(3), line(4, starred = true))
+        assertEquals(listOf("id2", "id4", "id1", "id3"), LineBook.visible(lines, "text").map { it.id })
+    }
+
+    @Test
+    fun `renderKey changes when anything a card shows changes`() {
+        val lines = mutableListOf(line(1), line(2))
+        val before = LineBook.renderKey(LineBook.visible(lines, ""))
+        lines[0].voices = "changed"
+        val afterVoices = LineBook.renderKey(LineBook.visible(lines, ""))
+        lines[1].starred = true
+        val afterPin = LineBook.renderKey(LineBook.visible(lines, ""))
+        assertTrue(before != afterVoices && afterVoices != afterPin)
+        assertEquals(afterPin, LineBook.renderKey(LineBook.visible(lines, "")))
+    }
+
+    @Test
     fun `pinning an existing line stars it and keeps its cached audio id`() {
         val lines = mutableListOf(line(1), line(2))
         val pinned = LineBook.pin(lines, "text 2", newId = "new")

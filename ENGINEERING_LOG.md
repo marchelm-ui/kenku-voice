@@ -3,6 +3,26 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 16 — search stops rebuilding the world per keystroke (v4.16, 2026-10-20)
+
+**Fault found:** the saved-lines search rebuilt every card view on *every
+keystroke* — with the 80-line cap that's hundreds of views inflated per typed
+word, on the main thread, mid-session. The filter/sort logic itself (word-AND
+match, pinned-first) was inline in `SpeakTab`, untested like the lines logic
+was before cycle 7.
+
+**Shipped:** `LineBook.visible(lines, query)` (every query word must match,
+pinned first, saved order within groups) and `LineBook.renderKey` (a
+fingerprint of what the cards would show). `renderCards` now skips entirely
+when the key is unchanged, and the search box re-renders 150 ms after the user
+pauses instead of per keystroke. 3 new tests pin matching, ordering, and that
+the key changes whenever anything a card displays changes (so the skip can
+never show stale voices or a stale pin).
+
+**Learned:** the skip-if-unchanged optimization is only safe because the
+fingerprint covers *everything rendered* — the test asserting that is the real
+deliverable; the speedup is just its side effect.
+
 ## Cycle 15 — the start gate is a contract, and the APK has a size band (v4.15, 2026-10-20)
 
 **Fault found:** the streamed-playback start decision — the exact math behind

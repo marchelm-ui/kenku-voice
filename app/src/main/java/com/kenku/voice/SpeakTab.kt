@@ -39,6 +39,7 @@ class SpeakTab(private val act: MainActivity) {
     private lateinit var quickRow: LinearLayout
     private lateinit var filter: EditText
     private var filterText = ""
+    private val filterRender = Runnable { if (act.alive) renderCards() }
 
     @Volatile private var busy = false
     @Volatile private var streaming = false
@@ -151,7 +152,12 @@ class SpeakTab(private val act: MainActivity) {
             addTextChangedListener(object : android.text.TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                 override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-                override fun afterTextChanged(e: android.text.Editable?) { filterText = e?.toString()?.trim().orEmpty(); renderCards() }
+                override fun afterTextChanged(e: android.text.Editable?) {
+                    filterText = e?.toString()?.trim().orEmpty()
+                    // Debounced: re-render once the user pauses, not on every keystroke.
+                    act.main.removeCallbacks(filterRender)
+                    act.main.postDelayed(filterRender, 150)
+                }
             })
         }
         // The search box sits outside the card list so typing in it never loses focus.
@@ -220,10 +226,17 @@ class SpeakTab(private val act: MainActivity) {
         renderCards()
     }
 
+    private var lastRenderKey: String? = null
+
     private fun renderCards() {
-        list.removeAllViews()
         filter.visibility = if (lines.size >= 6) View.VISIBLE else View.GONE
         if (lines.size < 6) filterText = ""
+        val sorted = LineBook.visible(lines, filterText)
+        // Rebuilding 80 cards per keystroke is jank; skip when nothing visible changed.
+        val key = "${lines.isEmpty()}|$filterText|" + LineBook.renderKey(sorted)
+        if (key == lastRenderKey) return
+        lastRenderKey = key
+        list.removeAllViews()
         if (lines.isEmpty()) {
             list.addView(ui.body("Your lines will show up here.\n\nTry: You owe us gold. The tavern keeper said so.", 15f).apply {
                 background = ui.rounded(ui.c(R.color.bg), ui.c(R.color.line))
@@ -231,9 +244,6 @@ class SpeakTab(private val act: MainActivity) {
             })
             return
         }
-        val words = filterText.lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
-        val shown = lines.filter { l -> words.all { l.text.lowercase().contains(it) } }
-        val sorted = shown.filter { it.starred } + shown.filter { !it.starred }
         if (sorted.isEmpty()) list.addView(ui.body("No saved lines match “$filterText”.", 14f))
         sorted.forEach { list.addView(card(it), ui.fill()) }
     }

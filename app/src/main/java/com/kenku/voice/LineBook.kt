@@ -50,6 +50,20 @@ object LineBook {
     }
 
     /**
+     * The lines the Speak tab shows for a search query: every query word must appear
+     * in the line (any order, any case), pinned lines first, saved order kept within
+     * each group. A blank query shows everything.
+     */
+    fun visible(lines: List<Line>, query: String): List<Line> {
+        val words = query.lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
+        val shown = if (words.isEmpty()) lines else lines.filter { l -> val t = l.text.lowercase(); words.all { t.contains(it) } }
+        return shown.filter { it.starred } + shown.filter { !it.starred }
+    }
+
+    /** A cheap fingerprint of what a rendered card list would look like, for skipping no-op rebuilds. */
+    fun renderKey(visible: List<Line>): String = visible.joinToString("\n") { "${it.id}|${it.starred}|${it.voices}|${it.text}" }
+
+    /**
      * Pins a phrase as a Quick line: stars the existing line with the same text
      * (so its cached audio is kept), or inserts a new starred line at the front.
      */
