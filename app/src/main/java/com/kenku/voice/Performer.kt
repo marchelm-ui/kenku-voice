@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
  * Streams audio to the speaker as it is produced, so a line starts playing as soon as
  * the first snippet is ready instead of after the whole line is made.
  */
-class StreamPlayer(private val onFinished: () -> Unit) {
+class StreamPlayer(private val onFinished: () -> Unit) : AudioSink {
     private val queue = LinkedBlockingQueue<FloatArray>()
     private val end = FloatArray(0)
     @Volatile private var stopped = false
@@ -56,18 +56,36 @@ class StreamPlayer(private val onFinished: () -> Unit) {
 
     init { thread.start() }
 
-    fun push(samples: FloatArray) { if (samples.isNotEmpty()) queue.put(samples) }
-    fun allowStart() { startAllowed = true }
-    fun finish() { startAllowed = true; queue.put(end) }
-    fun stop() { stopped = true; startAllowed = true; try { track.pause(); track.flush() } catch (e: Exception) {} }
+    override fun push(samples: FloatArray) { if (samples.isNotEmpty()) queue.put(samples) }
+    override fun allowStart() { startAllowed = true }
+    override fun finish() { startAllowed = true; queue.put(end) }
+    override fun stop() { stopped = true; startAllowed = true; try { track.pause(); track.flush() } catch (e: Exception) {} }
+}
+
+/** What the Performer needs from a voice engine; [VoiceEngine] is the real one. */
+interface TtsSource {
+    fun speak(text: String, speaker: Speaker, style: Style, smooth: Boolean, wild: Boolean = false): FloatArray
+}
+
+/** Where performed audio goes; [StreamPlayer] is the real one. */
+interface AudioSink {
+    fun push(samples: FloatArray)
+    fun allowStart()
+    fun finish()
+    fun stop()
 }
 
 /**
  * Performs one kenku line: splits it naturally, gives each snippet a different stolen
  * voice and style, blends the snippets together and streams them while generating.
- * Runs on the engine thread.
+ * Runs on the engine thread. The engine, sink and clock are seams, so the whole
+ * orchestration — ordering, gaps, clone fallback, cancellation — runs under JVM tests.
  */
-class Performer(private val engine: VoiceEngine) {
+class Performer(
+    private val engine: TtsSource,
+    private val sinkFactory: (onFinished: () -> Unit) -> AudioSink = { StreamPlayer(it) },
+    private val now: () -> Long = { SystemClock.uptimeMillis() },
+) {
 
     data class Options(
         val speakers: List<Speaker>,
@@ -83,7 +101,7 @@ class Performer(private val engine: VoiceEngine) {
     data class Result(val parts: List<String>, val file: File)
 
     @Volatile private var cancelled = false
-    @Volatile private var player: StreamPlayer? = null
+    @Volatile private var player: AudioSink? = null
 
     fun cancel() { cancelled = true; player?.stop() }
 
@@ -104,7 +122,7 @@ class Performer(private val engine: VoiceEngine) {
         val totalWords = chunks.sumOf { it.words.size }
         val xf = AudioDsp.RATE * (if (opts.smooth) 40 else 12) / 1000
 
-        val p = StreamPlayer(onPlaybackDone).also { player = it }
+        val p = sinkFactory(onPlaybackDone).also { player = it }
         val full = ArrayList<FloatArray>()
         val parts = ArrayList<String>()
         var started = false
@@ -143,7 +161,7 @@ class Performer(private val engine: VoiceEngine) {
                 var speaker = pick(speakers, last, lastGroup)
                 val style = if (styles.size > 1) styles.filter { it != lastStyle }.random() else styles[0]
 
-                val t0 = SystemClock.uptimeMillis()
+                val t0 = now()
                 val s = try {
                     engine.speak(c.spoken, speaker, style, opts.smooth, opts.wild)
                 } catch (e: Throwable) {
@@ -155,7 +173,7 @@ class Performer(private val engine: VoiceEngine) {
                     engine.speak(c.spoken, speaker, style, opts.smooth, opts.wild)
                 }
                 last = speaker; lastGroup = groupOf(speaker); lastStyle = style
-                genMs += SystemClock.uptimeMillis() - t0
+                genMs += now() - t0
                 if (cancelled) break
                 if (s.isEmpty()) continue
                 parts.add(if (style.key == "natural") speaker.label else "${speaker.label}, ${style.label.lowercase()}")

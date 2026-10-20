@@ -97,7 +97,7 @@ object Catalog {
  *  - Pocket TTS: speaks in any voice from a few seconds of example audio (cloning).
  * Every call must happen on one background thread (the models are not thread-safe).
  */
-class VoiceEngine(private val context: Context) {
+class VoiceEngine(private val context: Context) : TtsSource {
 
     private var kokoro: OfflineTts? = null
     private var pocket: OfflineTts? = null
@@ -218,7 +218,7 @@ class VoiceEngine(private val context: Context) {
      * Synthesizes one snippet and returns it cleaned up for joining: trimmed, pitch/speed
      * styled and loudness-matched, at [AudioDsp.RATE].
      */
-    fun speak(text: String, speaker: Speaker, style: Style, smooth: Boolean, wild: Boolean = false): FloatArray {
+    override fun speak(text: String, speaker: Speaker, style: Style, smooth: Boolean, wild: Boolean): FloatArray {
         // When blending smoothly, styles lean toward the natural voice so switches stay subtle.
         // Clear mode keeps every voice easy to understand — the clamps live in StyleTuning.
         val (pitch, _, speed) = StyleTuning.tune(style, smooth, wild)

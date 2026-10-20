@@ -3,6 +3,29 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 22 — the whole performance runs under test (v4.22, 2026-10-20)
+
+**Fault found:** every *unit* of the pipeline was tested (chunker, stitcher,
+tuning, picking, start gate), but the conductor — `Performer.perform()`'s
+orchestration of them all: ordering, part labels, sound splicing, the
+clone→builtin fallback, cancellation, the WAV on disk — was welded to the real
+`VoiceEngine`, `AudioTrack` and `SystemClock`, so the seams between tested
+units were themselves untested. Cycle 3 extracted the stitcher *from* it;
+nothing ever tested *it*.
+
+**Shipped:** two seams — `TtsSource` (VoiceEngine is the real one) and
+`AudioSink` (StreamPlayer is the real one) — plus an injectable clock, with
+production wiring unchanged. `PerformerTest` (6 tests) runs full performances
+on the JVM against a tone-speaking fake engine: audio streamed/finished/saved
+with the file matching what was streamed byte-for-count, a failing clone falls
+back to builtins without a clone label leaking, cancel mid-line stops the sink
+and raises Stopped, sound tags splice and credit `[Coin toss]`, a missing
+sound is reported not fatal, and an empty line is refused up front.
+
+**Learned:** testing all the organs and never the circulation is how
+integration bugs survive a hundred green unit tests. When the units are pure,
+the orchestrator needs only two small interfaces to join them under test.
+
 ## Cycle 21 — TalkBack hears what matters, not the meters (v4.21, 2026-10-20)
 
 **Fault found:** the backlog's accessibility audit was parked as "needs human
