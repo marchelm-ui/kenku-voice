@@ -3,6 +3,29 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 10 — the intelligibility contract is now law (v4.10, 2026-10-20)
+
+**Fault found:** the clear-mode clamps — the fix for the one fault Marcus ever
+reported by ear ("hard to hear what some voices are saying when pitched too
+high or too low... or sped up too quickly") — were four magic numbers inline in
+`VoiceEngine.speak()`, untestable behind an Android dependency and a hidden
+`Random`. Nothing stopped a future style or a careless edit from tuning a voice
+right back past understanding.
+
+**Shipped:** `StyleTuning` (pure, injectable Random): named clamp constants and
+the full pitch/rate/speed derivation, with `VoiceEngine.speak()` rewired onto
+it. 7 tests sweep every catalog style × smooth × wild × 50 seeds and pin: clear
+mode can never leave 0.88–1.16 pitch / 0.86–1.12 rate, wild stays inside its
+own bounds, model speed stays in its sweet spot, every catalog style's base
+values already sit *inside* the clamps (so clamping never distorts a design),
+natural stays within jitter of the voice's own sound, smooth jitters less than
+lively, and tuning is seed-deterministic.
+
+**Learned:** the most important numbers in the app were the least protected.
+When a user-reported fault gets fixed by constants, promote the constants to a
+named, tested contract in the same change — otherwise the fix is one refactor
+away from silently unhappening.
+
 ## Cycle 9 — the sound catalog can no longer lie (v4.9, 2026-10-20)
 
 **Fault found:** assets/sfx/catalog.json drives the whole Sounds tab, yet

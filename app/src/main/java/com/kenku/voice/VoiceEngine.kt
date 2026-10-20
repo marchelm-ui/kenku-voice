@@ -10,7 +10,6 @@ import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsPocketModelConfig
 import java.io.File
 import java.io.FileOutputStream
-import kotlin.random.Random
 
 /** One built-in Kokoro voice: its speaker id in voices.bin and a friendly name. */
 data class KVoice(val sid: Int, val id: String, val name: String)
@@ -221,14 +220,8 @@ class VoiceEngine(private val context: Context) {
      */
     fun speak(text: String, speaker: Speaker, style: Style, smooth: Boolean, wild: Boolean = false): FloatArray {
         // When blending smoothly, styles lean toward the natural voice so switches stay subtle.
-        // Clear mode keeps every voice easy to understand: small pitch shifts, gentle speed changes.
-        val basePitch = if (wild) style.wildPitch else style.pitch
-        val baseRate = if (wild) style.wildRate else style.rate
-        val jitter = if (smooth) 0.015 else 0.03
-        val pitch = (basePitch * Random.nextDouble(1 - jitter, 1 + jitter).toFloat())
-            .let { if (wild) it.coerceIn(0.7f, 1.6f) else it.coerceIn(0.88f, 1.16f) }
-        val rate = if (wild) baseRate.coerceIn(0.75f, 1.35f) else baseRate.coerceIn(0.86f, 1.12f)
-        val speed = (rate / pitch).coerceIn(0.6f, 1.6f)
+        // Clear mode keeps every voice easy to understand — the clamps live in StyleTuning.
+        val (pitch, _, speed) = StyleTuning.tune(style, smooth, wild)
         val raw: FloatArray = when (speaker) {
             is Speaker.Builtin -> {
                 val tts = kokoro ?: throw IllegalStateException("Voices not loaded")
