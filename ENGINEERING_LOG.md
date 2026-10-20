@@ -3,6 +3,28 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 26 — budgets from measurements, contracts from fuzz (v4.26, 2026-10-20)
+
+**Fault found:** two loose ends. Cycle 25's clarity gate shipped with a
+deliberately loose 0.35× ratio pending real numbers — CI then measured the
+corners at 0.85× (pitch down) and 1.46× (pitch up) of baseline. And the
+Chunker's contracts were pinned only on hand-picked examples; random
+composition (tags beside emoji beside "wait…" beside dice notation) was
+untested space.
+
+**Shipped:** the clarity ratio tightened 0.35×→0.6× with the measured corners
+recorded beside it (29 % headroom under the worst corner). `ChunkerFuzzTest`:
+300 randomly composed lines from a table-talk vocabulary with interleaved
+[sound] tags, asserting all four contracts on every one — losslessness minus
+tags, tags in order as their own chunks, 1–4-word punctuated speech, at most
+one sentence-closing chunk — plus an adjacent/leading-tags case. Cycle 25's
+own first push is the cautionary tale: its guessed floor (0.05) was double
+reality (0.026) and the gate caught *itself* before anything shipped.
+
+**Learned:** first measure, then budget — a guessed threshold is either
+theater (too loose) or a false alarm (too tight); cycle 25 managed one of
+each in a single line. And example tests prove points; fuzz proves contracts.
+
 ## Cycle 25 — clarity gets a number (v4.25, 2026-10-20)
 
 **Fault found:** voice clarity — the one fault Marcus ever reported by ear —

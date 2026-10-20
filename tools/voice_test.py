@@ -165,7 +165,8 @@ for pitch, rate_ in [(0.88, 1.12), (1.16, 0.86)]:
     shifted = pitch_mirror(a, pitch)
     f_shift = band_fraction(shifted, 1000, 4000)
     print(f"clarity at pitch {pitch} speed {rate_ / pitch:.2f}: {f_shift:.3f} (baseline {f_base:.3f})")
-    assert f_shift > 0.35 * f_base, f"consonant band collapsed at pitch {pitch}: {f_shift:.3f} vs {f_base:.3f}"
+    # Measured corners: 0.85x baseline (pitch down), 1.46x (pitch up); 0.6x is the budget.
+    assert f_shift > 0.6 * f_base, f"consonant band collapsed at pitch {pitch}: {f_shift:.3f} vs {f_base:.3f}"
 
 # 5. table-talk canary: the messy text real users type must never crash the model,
 # and anything with actual words in it must produce audible speech.
