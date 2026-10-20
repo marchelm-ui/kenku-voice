@@ -40,6 +40,9 @@ android {
         disable += "ChromeOsAbiSupport"
         // targetSdk 36 + edge-to-edge sits in the backlog; it needs a visual check on the real phone first.
         disable += "OldTargetApi"
+        // Dependency bumps are deliberate per-cycle decisions: the newest androidx.core
+        // needs the AGP 9 preview line, which this app doesn't ride.
+        disable += "GradleDependency"
     }
 
     // A fixed key so each new build installs over the old one without losing saved lines.
@@ -74,7 +77,7 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.19.1")
+    implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.appcompat:appcompat:1.8.0")
     // sherpa-onnx (offline speech engine), downloaded by the build workflow.
     implementation(files("libs/sherpa-onnx.aar"))

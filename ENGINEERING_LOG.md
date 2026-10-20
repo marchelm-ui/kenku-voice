@@ -15,13 +15,17 @@ that any *future* real warning would drown just the same.
 carrying its product reason in the build file (English-only; arm64/Pixel-only;
 targetSdk bump backlogged pending a visual check). The StaticFieldLeak flag is
 suppressed at the one field with proof it's safe (only the application context
-is ever stored). androidx core-ktx 1.13.1→1.19.1, appcompat 1.7.0→1.8.0,
-compileSdk 34→36 (compile-time only; targetSdk stays 34). The CI step now fails
-the build on any lint finding and still publishes the report first.
+is ever stored). The whole toolchain moved to the newest stable line in one go:
+Gradle 8.7→8.14.3, AGP 8.5.2→8.13.0, Kotlin 2.0.21→2.1.21, compileSdk 34→36
+(compile-time only; targetSdk stays 34), core-ktx 1.13.1→1.17.0, appcompat
+1.7.0→1.8.0. The CI step now fails the build on any lint finding and still
+publishes the report first.
 
 **Learned:** a warning list that can only grow is a warning list nobody reads.
 Drive it to zero once, then make zero the contract — same lesson as cycle 2's
-"a benchmark that only prints is decoration", one layer up.
+"a benchmark that only prints is decoration", one layer up. Also: the first
+push rode core-ktx 1.19.1, which demands the AGP 9 *preview* — "newest" and
+"newest stable" are different upgrade policies; this app rides the latter.
 
 ## Cycle 7 — pin a phrase + the line list becomes pure (v4.7, 2026-10-20)
 
