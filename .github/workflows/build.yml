@@ -164,6 +164,23 @@ jobs:
             voice-test-log.txt
           make_latest: true
 
+      # Each release carries ~450 MB of assets; without pruning they pile up forever.
+      # The newest 3 stay so a bad build can always be rolled back two steps.
+      - name: Prune old releases (keep the newest 3)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/releases" --paginate \
+            -q 'sort_by(.created_at) | reverse | .[3:] | .[] | "\(.id) \(.tag_name)"' |
+          while read -r id tag; do
+            echo "Pruning release $tag (id $id)"
+            gh api -X DELETE "repos/${{ github.repository }}/releases/$id"
+            gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/$tag" || true
+          done
+          left=$(gh api "repos/${{ github.repository }}/releases" --paginate -q 'length')
+          echo "Releases remaining: $left"
+          test "$left" -le 3
+
       - name: Save the error log if the build failed
         if: failure()
         run: |

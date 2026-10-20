@@ -3,6 +3,19 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 6 — releases stop hoarding gigabytes (v4.6, 2026-10-20)
+
+**Fault found:** every green build published a ~450 MB release and none was ever
+deleted — 19 releases, 8.6 GB, growing forever. Marcus only ever installs the
+latest; the rest is dead weight on his GitHub account.
+
+**Shipped:** a workflow step right after publishing deletes every release (and
+its tag) beyond the newest 3, then *asserts* at most 3 remain — the prune is a
+gate, not a hope. Three stay so a bad build can be rolled back two steps.
+
+**Learned:** infrastructure accumulates faults too, not just code. "Fresh eyes
+on the whole app" includes the repo around it.
+
 ## Cycle 5 — the clone recorder judges its input (v4.6, 2026-10-20)
 
 **Fault found:** the Clones tab accepted any recording with 3 s of speech and
@@ -102,4 +115,3 @@ Python side is the authority on the models.
 - targetSdk 36 + edge-to-edge layout (required for any future Play release).
 - Accessibility audit: TalkBack labels exist, but ordering/grouping untested.
 - Phrasebook lines could feed Quick lines directly ("pin a phrase").
-- Release pruning: old APK releases pile up (~200 MB each); keep the newest few.
