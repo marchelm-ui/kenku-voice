@@ -3,6 +3,25 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 9 — the sound catalog can no longer lie (v4.9, 2026-10-20)
+
+**Fault found:** assets/sfx/catalog.json drives the whole Sounds tab, yet
+nothing checked it against the 467 ogg files it points at. An entry whose file
+vanishes plays *silence at the table with no error*; an ogg the catalog forgot
+ships as dead weight in a 600 MB APK. Audited today: all 467 entries resolve —
+the fault class, not a live fault. Guarded anyway, because a catalog edit is
+exactly the kind of change a future cycle will make casually.
+
+**Shipped:** `CatalogSanityTest` (4 tests): every entry's file exists; every
+ogg on disk is referenced (no orphans); ids and category keys unique, labels
+non-blank, durations sane, paths sfx/-rooted; and each entry's `dur` roughly
+agrees with its file's size (sub-half-second clips exempt from the upper bound
+— the ogg header dominates them, which the audit itself discovered).
+
+**Learned:** data files are code without a compiler. Anything the app *reads
+to decide behavior* deserves the same guard a function gets — this is the
+fixture lesson from cycle 4 applied to content instead of benchmarks.
+
 ## Cycle 8 — lint becomes a zero-warning gate (v4.8, 2026-10-20)
 
 **Fault found:** the CI lint step was "report only" — 36 warnings were being
@@ -25,7 +44,9 @@ publishes the report first.
 Drive it to zero once, then make zero the contract — same lesson as cycle 2's
 "a benchmark that only prints is decoration", one layer up. Also: the first
 push rode core-ktx 1.19.1, which demands the AGP 9 *preview* — "newest" and
-"newest stable" are different upgrade policies; this app rides the latter.
+"newest stable" are different upgrade policies; this app rides the latter. And
+the new toolchain's lint immediately earned its keep: its UseKtx check found
+six pre-KTX `prefs.edit().apply()` call sites, all converted to `edit {}`.
 
 ## Cycle 7 — pin a phrase + the line list becomes pure (v4.7, 2026-10-20)
 
