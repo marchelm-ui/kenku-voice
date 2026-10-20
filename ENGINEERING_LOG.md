@@ -3,6 +3,26 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 5 — the clone recorder judges its input (v4.6, 2026-10-20)
+
+**Fault found:** the Clones tab accepted any recording with 3 s of speech and
+said "listen back and save" — no matter how much room noise or mic clipping it
+carried. A bad sample poisons *every* line that clone ever speaks, and the user
+only discovers it after naming and saving, when re-recording feels expensive.
+
+**Shipped:** `SampleQuality` (pure object): per-frame RMS analysis gives
+speech-seconds, SNR (quietest-tenth noise floor vs loudest-third voice level,
+the same convention the loudness matcher uses), and clipped-sample percentage.
+Verdicts: >1 % clipped → "hold the phone farther away"; <14 dB SNR → "a quieter
+room clones much better"; else a clean bill with the measured headroom. Wired
+into `acceptSample` as a warn-only hint — the user can still save, because a
+noisy clone of the right voice beats no clone. 5 new tests with synthetic
+recordings (clean / noisy-room / clipped square / overload-vs-noise precedence /
+tiny-input safety) pin the thresholds.
+
+**Learned:** warn-only is the right strength for quality gates on *user*
+material — hard gates belong on our own code (CI), not on their living room.
+
 ## Cycle 4 — the Python chunker mirror is dead (v4.5, 2026-10-20)
 
 **Fault found:** `tools/voice_test.py` carried a hand-written Python copy of the
@@ -82,4 +102,4 @@ Python side is the authority on the models.
 - targetSdk 36 + edge-to-edge layout (required for any future Play release).
 - Accessibility audit: TalkBack labels exist, but ordering/grouping untested.
 - Phrasebook lines could feed Quick lines directly ("pin a phrase").
-- Clone quality meter: warn when a sample is too noisy before saving.
+- Release pruning: old APK releases pile up (~200 MB each); keep the newest few.

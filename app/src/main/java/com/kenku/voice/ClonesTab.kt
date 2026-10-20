@@ -187,8 +187,13 @@ class ClonesTab(private val act: MainActivity) {
             return
         }
         captured = CloneStore.prepare(raw)
-        hint.text = if (speech < 6f) "Got %.0f seconds of speech. It will work, but 8 seconds or more sounds more like them.".format(speech)
-        else "Got %.0f seconds of speech. Listen back, give it a name and save.".format(speech)
+        val quality = SampleQuality.assess(raw)
+        val amount = if (speech < 6f) "Got %.0f seconds of speech — it will work, but 8 seconds or more sounds more like them.".format(speech)
+        else "Got %.0f seconds of speech.".format(speech)
+        hint.text = when {
+            quality.clipped || quality.noisy -> "$amount ${quality.hint()}"
+            else -> "$amount Clean recording — listen back, give it a name and save."
+        }
         afterRec.visibility = View.VISIBLE
         nameField.requestFocus()
     }
