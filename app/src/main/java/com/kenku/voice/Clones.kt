@@ -13,7 +13,6 @@ import org.json.JSONObject
 import java.io.File
 import java.nio.ByteOrder
 import kotlin.math.abs
-import kotlin.math.sqrt
 
 /** A voice the user cloned from a recording. */
 class Clone(val id: String, var name: String, var inMix: Boolean, private val dir: File) {
@@ -67,19 +66,7 @@ class CloneStore(context: Context) {
             return AudioDsp.fadeEdges(AudioDsp.matchLoudness(s, 0.09f), 20)
         }
 
-        /** Seconds of actual speech (not silence) in a recording. */
-        fun speechSeconds(samples: FloatArray): Float {
-            val win = 480
-            var voiced = 0
-            var i = 0
-            while (i + win <= samples.size) {
-                var sum = 0.0
-                for (k in i until i + win) sum += samples[k] * samples[k]
-                if (sqrt(sum / win) > 0.02) voiced++
-                i += win
-            }
-            return voiced * win / AudioDsp.RATE.toFloat()
-        }
+        // Speech-seconds measurement lives in SampleQuality.assess() — one authority.
     }
 }
 

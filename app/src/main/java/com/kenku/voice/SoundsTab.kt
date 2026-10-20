@@ -324,7 +324,7 @@ class SoundsTab(private val act: MainActivity) {
                         recBtn.text = "● Record again"; meter.progress = 0
                         if (err != null) { act.toast("The microphone couldn't start."); return@post }
                         val trimmed = AudioDsp.trim(raw, 0.015f, 60)
-                        if (trimmed.size < AudioDsp.RATE / 5 || CloneStore.speechSeconds(trimmed) < 0.1f) {
+                        if (trimmed.size < AudioDsp.RATE / 5 || SampleQuality.assess(trimmed).speechSeconds < 0.1f) {
                             timer.text = "Too quiet, try again closer"; return@post
                         }
                         clip = AudioDsp.fadeEdges(AudioDsp.matchLoudness(trimmed, 0.08f), 10)

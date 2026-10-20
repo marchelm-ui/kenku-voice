@@ -3,6 +3,28 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 12 — one authority for "how much speech is that" (v4.12, 2026-10-20)
+
+**Fault found:** `CloneStore.speechSeconds` (fixed 0.02 threshold) and
+`SampleQuality.assess` (adaptive threshold) measured the same quantity two
+different ways — the clone recorder's hint could call a take 8 s of speech
+while its quality meter saw 6. And `CloneStore.prepare`, which every cloned
+voice's reference audio flows through, had no tests at all.
+
+**Shipped:** `speechSeconds` deleted; both callers (clone recorder, mimic
+recorder) now read `SampleQuality.assess().speechSeconds`. Consolidating
+exposed a real edge: a *continuous* mimicked sound (coin jingle — no pauses)
+has noise floor ≈ signal, so the adaptive threshold collapsed its audible
+seconds to zero and would have rejected a good recording; the threshold is now
+capped at half the voice level, with a steady-tone regression test. 5 new
+`CloneStoreTest`s pin prepare(): silence trimmed, 20 s cap, level-matching to
+the model's 0.09 target (and the deliberate 0.35× attenuation clamp on very
+loud takes), click-free faded edges, no clipping.
+
+**Learned:** two implementations of one concept aren't redundancy, they're two
+*answers*. Consolidation isn't just hygiene — forcing one authority is what
+surfaced the continuous-sound edge neither copy handled.
+
 ## Cycle 11 — the sound matcher is pure, and its crash is dead (v4.11, 2026-10-20)
 
 **Fault found:** a real latent crash, found the moment the matcher was read with

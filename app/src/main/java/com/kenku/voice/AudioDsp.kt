@@ -85,7 +85,7 @@ object AudioDsp {
     }
 
     /** RMS of the louder (voiced) parts, ignoring quiet gaps. */
-    private fun voicedRms(src: FloatArray): Float {
+    fun voicedRms(src: FloatArray): Float {
         val win = 480
         val frames = mutableListOf<Float>()
         var i = 0

@@ -181,13 +181,13 @@ class ClonesTab(private val act: MainActivity) {
     }
 
     private fun acceptSample(raw: FloatArray) {
-        val speech = CloneStore.speechSeconds(raw)
+        val quality = SampleQuality.assess(raw)
+        val speech = quality.speechSeconds
         if (speech < 3f) {
             hint.text = "That was too short or too quiet (%.0f s of speech). Get closer and talk for about 10 seconds.".format(speech)
             return
         }
         captured = CloneStore.prepare(raw)
-        val quality = SampleQuality.assess(raw)
         val amount = if (speech < 6f) "Got %.0f seconds of speech — it will work, but 8 seconds or more sounds more like them.".format(speech)
         else "Got %.0f seconds of speech.".format(speech)
         hint.text = when {

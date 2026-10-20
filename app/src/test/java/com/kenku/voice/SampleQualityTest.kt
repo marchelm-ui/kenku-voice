@@ -60,6 +60,18 @@ class SampleQualityTest {
     }
 
     @Test
+    fun `a continuous sound with no pauses still counts as audible seconds`() {
+        // A mimicked sound effect (coin jingle, door creak) has no silent frames, so the
+        // adaptive noise floor equals the signal — the threshold cap keeps it counting.
+        val rnd = Random(7)
+        val steady = FloatArray(rate * 2) { i ->
+            (0.25 * sin(2 * PI * 300.0 * i / rate)).toFloat() + (rnd.nextFloat() * 2 - 1) * 0.05f
+        }
+        val r = SampleQuality.assess(steady)
+        assertTrue("speechSeconds ${r.speechSeconds}", r.speechSeconds >= 1.0f)
+    }
+
+    @Test
     fun `tiny input never divides by zero`() {
         val r = SampleQuality.assess(FloatArray(100))
         assertEquals(0f, r.speechSeconds, 1e-6f)

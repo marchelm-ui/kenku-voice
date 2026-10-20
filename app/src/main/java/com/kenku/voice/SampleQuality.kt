@@ -48,7 +48,10 @@ object SampleQuality {
         // Voice level: the loudest third, same convention as the loudness matcher.
         val speech = sorted.subList(sorted.size * 2 / 3, sorted.size).average().toFloat()
         val snr = (20 * log10((speech / noise).toDouble())).toFloat().coerceIn(0f, 60f)
-        val speechThreshold = maxOf(noise * 2.5f, 0.02f)
+        // Adaptive floor, but never above half the voice level: a continuous sound
+        // (a mimicked coin jingle with no pauses) has floor ≈ signal, and must still
+        // count as audible seconds rather than collapsing to zero.
+        val speechThreshold = maxOf(0.02f, minOf(noise * 2.5f, speech * 0.5f))
         val speechSeconds = frames.count { it > speechThreshold } * WIN / AudioDsp.RATE.toFloat()
         val clippedPercent = 100f * clippedSamples / x.size
         return Report(speechSeconds, snr, clippedPercent)
