@@ -3,6 +3,25 @@
 A running record of each improvement cycle: what was found with fresh eyes, what
 shipped, and what was learned. Newest first.
 
+## Cycle 38 — the voice roster is pinned (v4.38, 2026-10-20)
+
+**Fault found:** the 54-entry speaker-id list (voices.bin order) and its
+grouping into 9 accents was correct — verified by hand this cycle — but held
+together only by convention: the grouping is prefix-based (`group('e')`
+catches `ef_`, `em_`…), so a future voice addition with a new prefix would
+silently vanish from the app, a typo would scramble a voice's identity, and
+the ARM gate (which iterates sids 0..53 directly) would stay green through
+all of it.
+
+**Shipped:** `CatalogCoverageTest` (3 tests): 54 voices with sequential sids
+and unique well-formed ids, humanized display names with honest gender tags,
+and the partition property — every voice in exactly one accent, none lost,
+none doubled; accent keys unique, groups non-empty.
+
+**Learned:** the model-side gate and the app-side mapping can both be
+individually fine while their *correspondence* is unguarded — the same seam
+blindness cycle 22 found between tested units, here between two test suites.
+
 ## Cycle 37 — two new voices in the repertoire (v4.37, 2026-10-20)
 
 **Fault found:** the original brief asked for "as many options for voices as
