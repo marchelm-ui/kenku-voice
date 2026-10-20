@@ -54,7 +54,7 @@ object Phrasebook {
         "🎭 Mimicked voices" to listOf(
             "Halt! In the name of the crown!", "The master is not home.", "Fresh bread! Two coppers!",
             "Long live the king!", "Stand and deliver!", "You are under arrest!",
-            "The ritual begins at midnight.", "My precious. My shiny precious.",
+            "The ritual begins at midnight.", "Mine. The shiny is mine, forever.",
         ),
     )
 }

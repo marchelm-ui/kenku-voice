@@ -10,7 +10,9 @@ phrase is one tap from the ⚡ Quick row, making the phrasebook load-bearing
 play material, but it still had the original 62 lines across 7 sections, with
 whole kenku situations missing: stealth table-talk, begging for your bird's
 life, and — the most kenku thing of all — overheard voices replayed verbatim
-(guards, street criers, a certain ring-obsessed whisper).
+(guards, street criers, a greedy whisper). One first-draft line echoed a famous
+film character's catchphrase; replaced with an original before the next build —
+shipped content follows the same rules as shipped code.
 
 **Shipped:** three new sections — 🕵️ Sneaking, 🙏 Pleading, 🎭 Mimicked voices
 — bringing the book to 85 phrases across 10 sections. Zero new guard code
